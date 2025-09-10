@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
+import { getBanners, BannerDto } from '../../api/bannerService'; // استيراد خدمة اللافتات
 
 const Home: React.FC = () => {
     // Mock data for featured items
@@ -9,6 +10,21 @@ const Home: React.FC = () => {
         { id: 2, name: 'H1 Mini Bus', description: 'Ideal for group travel and family vacations.', price: 150, imageUrl: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
         { id: 3, name: '4x4 SUV', description: 'Explore deserts and mountains with a powerful vehicle.', price: 120, imageUrl: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
     ];
+
+    // حالة اللافتات
+    const [banners, setBanners] = useState<BannerDto[]>([]);
+
+    useEffect(() => {
+        const fetchBanners = async () => {
+            try {
+                const activeBanners = await getBanners();
+                setBanners(activeBanners || []);
+            } catch (error) {
+                console.error("Could not fetch banners:", error);
+            }
+        };
+        fetchBanners();
+    }, []);
 
     return (
         <div>
@@ -26,6 +42,21 @@ const Home: React.FC = () => {
                     </Link>
                 </div>
             </section>
+
+            {/* Banners Section - قسم الإعلانات (يعرض أول لافتة متاحة) */}
+            {banners.length > 0 && (
+                <section className="py-12 bg-gray-50">
+                    <div className="container mx-auto px-6">
+                        <a href={banners[0].linkUrl || '#'} target="_blank" rel="noopener noreferrer">
+                            <img
+                                src={banners[0].imageUrl}
+                                alt={banners[0].title || 'Banner'}
+                                className="w-full h-auto rounded-lg shadow-lg object-cover"
+                            />
+                        </a>
+                    </div>
+                </section>
+            )}
 
             {/* Featured Vehicles Section */}
             <section className="py-16 bg-white">
@@ -55,4 +86,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-

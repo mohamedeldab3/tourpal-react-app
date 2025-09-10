@@ -1,0 +1,1644 @@
+[1mdiff --git a/src/api/authService.ts b/src/api/authService.ts[m
+[1mindex f319dc7..e32bb00 100644[m
+[1m--- a/src/api/authService.ts[m
+[1m+++ b/src/api/authService.ts[m
+[36m@@ -1,32 +1,49 @@[m
+[31m-// This is a mock service. In a real application, it would use the apiClient to make network requests.[m
+[32m+[m[32mimport apiClient from './apiClient';[m
+ [m
+[31m-export const login = async (credentials: any) => {[m
+[31m-    console.log('Mock login request with:', credentials);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 1000));[m
+[32m+[m[32m// تعريف أنواع البيانات للمستخدم بناءً على ما هو موجود في AuthContext[m
+[32m+[m[32minterface User {[m
+[32m+[m[32m  id: string;[m
+[32m+[m[32m  fullName: string;[m
+[32m+[m[32m  email: string;[m
+[32m+[m[32m  userType: 'user' | 'provider' | 'admin';[m
+[32m+[m[32m}[m
+ [m
+[31m-    if (!credentials.email) {[m
+[31m-        throw new Error('Login failed');[m
+[31m-    }[m
+[32m+[m[32m// تعريف أنواع البيانات للمدخلات والمخرجات[m
+[32m+[m[32minterface LoginPayload {[m
+[32m+[m[32m  email: string;[m
+[32m+[m[32m  password: string;[m
+[32m+[m[32m}[m
+ [m
+[31m-    const userType = credentials.email.includes('admin') ? 'admin'[m
+[31m-                   : credentials.email.includes('provider') ? 'provider'[m
+[31m-                   : 'user';[m
+[32m+[m[32minterface LoginResponse {[m
+[32m+[m[32m  user: User;[m
+[32m+[m[32m  token: string;[m
+[32m+[m[32m}[m
+ [m
+[31m-    return {[m
+[31m-        user: {[m
+[31m-            id: 'mock-user-id',[m
+[31m-            fullName: 'Mock User',[m
+[31m-            email: credentials.email,[m
+[31m-            userType: userType,[m
+[31m-        },[m
+[31m-        token: 'mock-jwt-token',[m
+[31m-    };[m
+[31m-};[m
+[32m+[m[32minterface RegisterPayload {[m
+[32m+[m[32m  fullName: string;[m
+[32m+[m[32m  email: string;[m
+[32m+[m[32m  password: string;[m
+[32m+[m[32m  userType: 'user' | 'provider';[m
+[32m+[m[32m}[m
+ [m
+[31m-export const register = async (userData: any) => {[m
+[31m-    console.log('Mock register request with:', userData);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 1500));[m
+[31m-    // In a real app, this would return a success message or user data[m
+[31m-    return { success: true, message: 'Registration successful. Please wait for admin approval.' };[m
+[32m+[m[32m/**[m
+[32m+[m[32m * إرسال طلب تسجيل الدخول إلى الـ API.[m
+[32m+[m[32m * @param credentials بيانات الدخول (الإيميل وكلمة المرور).[m
+[32m+[m[32m * @returns Promise يحتوي على بيانات المستخدم والـ token.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const login = async (credentials: LoginPayload): Promise<LoginResponse> => {[m
+[32m+[m[32m  // لاحظ أننا نستخدم apiClient بدلاً من axios مباشرة[m
+[32m+[m[32m  // ولا نحتاج لكتابة الرابط الكامل، فقط الـ endpoint[m
+[32m+[m[32m  const { data } = await apiClient.post('/Account/login', credentials);[m
+[32m+[m[32m  return data;[m
+ };[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * إرسال طلب تسجيل حساب جديد إلى الـ API.[m
+[32m+[m[32m * @param userData بيانات المستخدم الجديد.[m
+[32m+[m[32m * @returns Promise يحتوي على استجابة الـ API.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const register = async (userData: RegisterPayload) => {[m
+[32m+[m[32m  const { data } = await apiClient.post('/Account/register', userData);[m
+[32m+[m[32m  return data;[m
+[32m+[m[32m};[m
+[1mdiff --git a/src/api/bannerService.ts b/src/api/bannerService.ts[m
+[1mindex b50422d..2ead2bc 100644[m
+[1m--- a/src/api/bannerService.ts[m
+[1m+++ b/src/api/bannerService.ts[m
+[36m@@ -1,14 +1,79 @@[m
+[31m-import apiClient from './axios';[m
+[32m+[m[32mimport apiClient from './apiClient';[m
+ [m
+[31m-export const getBanners = async () => {[m
+[31m-  const response = await apiClient.get('/Banner/get-banners');[m
+[31m-  return response.data;[m
+[31m-};[m
+[32m+[m[32m// واجهة لبيانات الإعلان عند الإنشاء[m
+[32m+[m[32mexport interface AdvertisementCreateDto {[m
+[32m+[m[32m    title: string;[m
+[32m+[m[32m    description?: string;[m
+[32m+[m[32m    image: File;[m
+[32m+[m[32m    targetUrl?: string;[m
+[32m+[m[32m    position: number; // AdPosition Enum[m
+[32m+[m[32m    startDate: string;[m
+[32m+[m[32m    endDate: string;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// واجهة لبيانات الإعلان المعروض[m
+[32m+[m[32mexport interface AdvertisementDto {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    title: string;[m
+[32m+[m[32m    description: string;[m
+[32m+[m[32m    imagePath: string;[m
+[32m+[m[32m    targetUrl: string;[m
+[32m+[m[32m    position: number;[m
+[32m+[m[32m    startDate: string;[m
+[32m+[m[32m    endDate: string;[m
+[32m+[m[32m    status: number; // AdStatus Enum[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// واجهة لبيانات اللافتة (Banner) المعروضة في الصفحة الرئيسية[m
+[32m+[m[32mexport interface BannerDto {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    title: string;[m
+[32m+[m[32m    imageUrl: string;[m
+[32m+[m[32m    linkUrl: string;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * دالة لإنشاء طلب إعلان جديد[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const createAdvertisement = async (data: AdvertisementCreateDto): Promise<any> => {[m
+[32m+[m[32m    const formData = new FormData();[m
+[32m+[m[32m    formData.append('title', data.title);[m
+[32m+[m[32m    formData.append('image', data.image);[m
+[32m+[m[32m    formData.append('position', data.position.toString());[m
+[32m+[m[32m    formData.append('startDate', data.startDate);[m
+[32m+[m[32m    formData.append('endDate', data.endDate);[m
+[32m+[m[32m    if (data.description) formData.append('description', data.description);[m
+[32m+[m[32m    if (data.targetUrl) formData.append('targetUrl', data.targetUrl);[m
+ [m
+[31m-export const createBanner = async (bannerData: FormData) => {[m
+[31m-    // Using FormData for image uploads[m
+[31m-    const response = await apiClient.post('/Banner/create-banner', bannerData, {[m
+[31m-        headers: { 'Content-Type': 'multipart/form-data' },[m
+[32m+[m[32m    // ملاحظة: يتم إرسال البيانات كـ multipart/form-data بسبب وجود ملف الصورة[m
+[32m+[m[32m    const response = await apiClient.post('/api/Banner/create-banner', formData, {[m
+[32m+[m[32m        headers: {[m
+[32m+[m[32m            'Content-Type': 'multipart/form-data',[m
+[32m+[m[32m        },[m
+     });[m
+     return response.data;[m
+ };[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * دالة لجلب اللافتات (Banners) النشطة لعرضها في الموقع[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const getBanners = async (): Promise<BannerDto[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Banner/get-banners');[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * دالة (للأدمن) لجلب الإعلانات التي تنتظر المراجعة[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const getPendingAdvertisements = async (): Promise<AdvertisementDto[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Banner/advertisements');[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * دالة (للأدمن) للموافقة على إعلان أو رفضه[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const handleAdvertisement = async (adId: string, isApproved: boolean): Promise<any> => {[m
+[32m+[m[32m    const response = await apiClient.post(`/api/Banner/advertisements/${adId}/handle`, { isApproved });[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[1mdiff --git a/src/api/carService.ts b/src/api/carService.ts[m
+[1mindex 0162dcc..d15bb8c 100644[m
+[1m--- a/src/api/carService.ts[m
+[1m+++ b/src/api/carService.ts[m
+[36m@@ -1,59 +1,85 @@[m
+[31m-// src/api/carService.ts[m
+[32m+[m[32mimport apiClient from './apiClient';[m
+ [m
+[31m-// This is a mock database to simulate real-world data.[m
+[31m-let mockCars = [[m
+[31m-    { id: 'car1', brand: 'Toyota', model: 'Land Cruiser', year: 2023, pricePerDay: 150, status: 'Available', imageUrl: 'https://images.unsplash.com/photo-1617083299395-4227835b3c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },[m
+[31m-    { id: 'car2', brand: 'Ford', model: 'Explorer', year: 2022, pricePerDay: 120, status: 'Booked', imageUrl: 'https://images.unsplash.com/photo-1533106418989-88406e768d1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },[m
+[31m-    { id: 'car3', brand: 'Hyundai', model: 'H1', year: 2024, pricePerDay: 130, status: 'Available', imageUrl: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },[m
+[31m-];[m
+[32m+[m[32m// Define the types that will be used across the application[m
+[32m+[m[32mexport interface CarImage {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    imageUrl: string;[m
+[32m+[m[32m    isPrimary: boolean;[m
+[32m+[m[32m}[m
+ [m
+[31m-// --- Mock API Functions ---[m
+[32m+[m[32mexport interface Car {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    brand: string;[m
+[32m+[m[32m    model: string;[m
+[32m+[m[32m    year: number;[m
+[32m+[m[32m    pricePerDay: number;[m
+[32m+[m[32m    description: string;[m
+[32m+[m[32m    carImages?: CarImage[];[m
+[32m+[m[32m    features?: string[];[m
+[32m+[m[32m    // Add other properties from the API as needed[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport interface CarListItem {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    brand: string;[m
+[32m+[m[32m    model: string;[m
+[32m+[m[32m    year: number;[m
+[32m+[m[32m    pricePerDay: number;[m
+[32m+[m[32m    carImages?: CarImage[];[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport interface NewCarData {[m
+[32m+[m[32m    brand: string;[m
+[32m+[m[32m    model: string;[m
+[32m+[m[32m    year: number;[m
+[32m+[m[32m    pricePerDay: number;[m
+[32m+[m[32m    cityId: string;[m
+[32m+[m[32m    carTypeId: string;[m
+[32m+[m[32m    capacity: number;[m
+[32m+[m[32m    plateNumber: string;[m
+[32m+[m[32m    description: string;[m
+[32m+[m[32m    featureIds: number[];[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m
+[32m+[m[32m// ✅ FIX: Added 'export' before each function to make them available for import.[m
+ [m
+ /**[m
+[31m- * Fetches all cars for the public search page.[m
+[32m+[m[32m * Fetches a list of cars for public view (like the search page).[m
+  */[m
+[31m-export const getCarsList = async () => {[m
+[31m-    console.log('API Call: Fetching all cars for search page...');[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    return mockCars.filter(car => car.status === 'Available');[m
+[32m+[m[32mexport const getCarsList = async (): Promise<CarListItem[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/TourismCompany/cars-list');[m
+[32m+[m[32m    return response.data.data; // Assuming the API returns data in a nested structure[m
+ };[m
+ [m
+[32m+[m[32m/**[m
+[32m+[m[32m * Fetches detailed information for a single car.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const getCarDetails = async (id: string): Promise<Car> => {[m
+[32m+[m[32m    const response = await apiClient.get(`/api/TourismCompany/cars/${id}`);[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+ [m
+ /**[m
+[31m- * Fetches cars for a specific provider's dashboard.[m
+[32m+[m[32m * Fetches the list of cars belonging to the currently logged-in provider.[m
+  */[m
+[31m-export const getProviderCars = async () => {[m
+[31m-    console.log('API Call: Fetching provider cars...');[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    return [...mockCars];[m
+[32m+[m[32mexport const getProviderCars = async (): Promise<Car[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/TransProvider/cars');[m
+[32m+[m[32m    return response.data;[m
+ };[m
+ [m
+ /**[m
+[31m- * Simulates adding a new car.[m
+[32m+[m[32m * Adds a new car for a provider.[m
+  */[m
+[31m-export const addCar = async (newCarData: { brand: string; model: string; year: number; pricePerDay: number }) => {[m
+[31m-    console.log('API Call: Adding a new car...', newCarData);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    [m
+[31m-    const newCar = {[m
+[31m-        id: `car${Math.random()}`, // Generate a random ID[m
+[31m-        ...newCarData,[m
+[31m-        status: 'Available',[m
+[31m-        imageUrl: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' // Default image[m
+[31m-    };[m
+[31m-[m
+[31m-    mockCars.push(newCar);[m
+[31m-    return newCar;[m
+[32m+[m[32mexport const addCar = async (carData: NewCarData): Promise<Car> => {[m
+[32m+[m[32m    const response = await apiClient.post('/api/TransProvider/cars', carData);[m
+[32m+[m[32m    return response.data;[m
+ };[m
+ [m
+ /**[m
+[31m- * Simulates deleting a car by its ID.[m
+[32m+[m[32m * Deletes a car by its ID.[m
+  */[m
+[31m-export const deleteCar = async (carId: string) => {[m
+[31m-    console.log(`API Call: Deleting car with ID ${carId}...`);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    [m
+[31m-    mockCars = mockCars.filter(car => car.id !== carId);[m
+[31m-    return { success: true };[m
+[32m+[m[32mexport const deleteCar = async (id: string): Promise<void> => {[m
+[32m+[m[32m    await apiClient.delete(`/api/TransProvider/cars/${id}`);[m
+ };[m
+ [m
+[1mdiff --git a/src/api/listsService.ts b/src/api/listsService.ts[m
+[1mindex 9f4cef3..6e58d59 100644[m
+[1m--- a/src/api/listsService.ts[m
+[1m+++ b/src/api/listsService.ts[m
+[36m@@ -1,13 +1,39 @@[m
+[31m-import apiClient from './axios';[m
+[32m+[m[32mimport apiClient from './apiClient';[m
+ [m
+[31m-// Example for fetching cities[m
+[31m-export const getCities = async () => {[m
+[31m-  const response = await apiClient.get('/Lists/GetCities');[m
+[32m+[m[32mexport interface BasicListDto {[m
+[32m+[m[32m  id: number;[m
+[32m+[m[32m  name: string;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport const getCities = async (): Promise<BasicListDto[]> => {[m
+[32m+[m[32m  const response = await apiClient.get('/api/Lists/GetCities');[m
+[32m+[m[32m  return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mexport const getCarTypes = async (): Promise<BasicListDto[]> => {[m
+[32m+[m[32m  const response = await apiClient.get('/api/Lists/GetCarTypesList');[m
+[32m+[m[32m  return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m// alias: اسم إضافي يصدّر نفس الدالة بالاسم اللي يستورده CarForm.tsx[m
+[32m+[m[32mexport const getCarTypesList = getCarTypes;[m
+[32m+[m
+[32m+[m[32mexport const getCarFeatures = async (): Promise<BasicListDto[]> => {[m
+[32m+[m[32m  const response = await apiClient.get('/api/Lists/GetCarFeatures');[m
+[32m+[m[32m  return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mexport const getDocumentsTypes = async (): Promise<BasicListDto[]> => {[m
+[32m+[m[32m  const response = await apiClient.get('/api/Lists/GetDocumentsTypes');[m
+   return response.data;[m
+ };[m
+ [m
+[31m-// Example for fetching car types[m
+[31m-export const getCarTypes = async () => {[m
+[31m-    const response = await apiClient.get('/Lists/GetCarTypesList');[m
+[32m+[m[32mexport const getAdvPostionsList = async (): Promise<BasicListDto[]> => {[m
+[32m+[m[32m  try {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Lists/GetAdvPostionsList');[m
+     return response.data;[m
+[32m+[m[32m  } catch (error) {[m
+[32m+[m[32m    console.error("Error fetching advertisement positions:", error);[m
+[32m+[m[32m    throw error;[m
+[32m+[m[32m  }[m
+ };[m
+[1mdiff --git a/src/api/userService.ts b/src/api/userService.ts[m
+[1mindex c32ea65..66dd6f0 100644[m
+[1m--- a/src/api/userService.ts[m
+[1m+++ b/src/api/userService.ts[m
+[36m@@ -1,63 +1,108 @@[m
+[31m-// src/api/userService.ts[m
+[32m+[m[32mimport apiClient from './apiClient';[m
+ [m
+[31m-// This is a mock database for users and approvals[m
+[31m-let mockUsers = [[m
+[31m-    { id: 'user1', fullName: 'John Doe', email: 'user@tourpal.com', userType: 'user', status: 'Active' },[m
+[31m-    { id: 'user2', fullName: 'Jane Smith', email: 'provider@tourpal.com', userType: 'provider', status: 'Active' },[m
+[31m-    { id: 'user3', fullName: 'Admin User', email: 'admin@tourpal.com', userType: 'admin', status: 'Active' },[m
+[31m-];[m
+[32m+[m[32m// ✅ FIX: Added 'export' to all interfaces to make them reusable.[m
+[32m+[m[32mexport interface PendingUser {[m
+[32m+[m[32m  userId: string;[m
+[32m+[m[32m  fullName: string;[m
+[32m+[m[32m  userType: string;[m
+[32m+[m[32m  createdAt: string;[m
+[32m+[m[32m  documents: Document[];[m
+[32m+[m[32m}[m
+ [m
+[31m-let mockPendingApprovals = [[m
+[31m-    { id: 'approval1', fullName: 'New Provider', email: 'new.provider@example.com', userType: 'provider' },[m
+[31m-    { id: 'approval2', fullName: 'Another Company', email: 'company@example.com', userType: 'provider' },[m
+[31m-];[m
+[32m+[m[32mexport interface User {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    fullName: string;[m
+[32m+[m[32m    email: string;[m
+[32m+[m[32m    userType: string;[m
+[32m+[m[32m    status: string;[m
+[32m+[m[32m}[m
+ [m
+[32m+[m[32mexport interface ApproveUserPayload {[m
+[32m+[m[32m    userId: string;[m
+[32m+[m[32m    status: 'Approved' | 'Rejected';[m
+[32m+[m[32m    notes: string;[m
+[32m+[m[32m}[m
+ [m
+[31m-// --- Mock API Functions for Admin ---[m
+[32m+[m[32mexport interface Document {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    documentTypeName: string;[m
+[32m+[m[32m    filePath: string;[m
+[32m+[m[32m    isVerified: boolean;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport interface RequiredDocument {[m
+[32m+[m[32m    documentName: string;[m
+[32m+[m[32m    isUploaded: boolean;[m
+[32m+[m[32m    isVerified: boolean;[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32mexport interface UserProfile {[m
+[32m+[m[32m    id: string;[m
+[32m+[m[32m    fullName: string;[m
+[32m+[m[32m    email: string;[m
+[32m+[m[32m    phoneNumber: string;[m
+[32m+[m[32m    companyName: string;[m
+[32m+[m[32m    address: string;[m
+[32m+[m[32m    city: { id: string, name: string };[m
+[32m+[m[32m    documents: Document[];[m
+[32m+[m[32m}[m
+[32m+[m
+[32m+[m[32m// ✅ FIX: Added 'export' before each function.[m
+ [m
+ /**[m
+[31m- * Fetches the list of all registered users.[m
+[32m+[m[32m * Fetches the list of users with pending approvals.[m
+  */[m
+[31m-export const getUsersList = async () => {[m
+[31m-    console.log('API Call: Fetching all users...');[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    return mockUsers;[m
+[32m+[m[32mexport const getPendingApprovals = async (): Promise<PendingUser[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Account/pending-approvals');[m
+[32m+[m[32m    return response.data;[m
+ };[m
+ [m
+ /**[m
+[31m- * Fetches the list of users waiting for account approval.[m
+[32m+[m[32m * Sends a request to approve or reject a user.[m
+  */[m
+[31m-export const getPendingApprovals = async () => {[m
+[31m-    console.log('API Call: Fetching pending approvals...');[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    return mockPendingApprovals;[m
+[32m+[m[32mexport const approveUser = async (payload: ApproveUserPayload): Promise<void> => {[m
+[32m+[m[32m    await apiClient.post('/api/Account/user-approve', payload);[m
+ };[m
+ [m
+ /**[m
+[31m- * Approves or rejects a user's registration.[m
+[32m+[m[32m * Suspends a user's account.[m
+  */[m
+[31m-export const approveUser = async (approvalId: string, isApproved: boolean) => {[m
+[31m-    console.log(`API Call: Setting approval for ${approvalId} to ${isApproved}`);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    [m
+[31m-    // Remove the user from the pending list[m
+[31m-    mockPendingApprovals = mockPendingApprovals.filter(user => user.id !== approvalId);[m
+[31m-    [m
+[31m-    return { success: true };[m
+[32m+[m[32mexport const suspendUser = async (userId: string): Promise<void> => {[m
+[32m+[m[32m    await apiClient.post(`/api/Account/suspend/${userId}`);[m
+ };[m
+ [m
+ /**[m
+[31m- * Suspends a user's account.[m
+[32m+[m[32m * Fetches the complete list of all users.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const getUsersList = async (): Promise<User[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Account/users-list');[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Fetches the profile of the currently logged-in user.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const getProfile = async (): Promise<UserProfile> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Account/get-profile');[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Checks the status of required documents for the logged-in user.[m
+[32m+[m[32m */[m
+[32m+[m[32mexport const checkUserDocuments = async (): Promise<RequiredDocument[]> => {[m
+[32m+[m[32m    const response = await apiClient.get('/api/Account/check-user-documents');[m
+[32m+[m[32m    return response.data;[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32m/**[m
+[32m+[m[32m * Uploads a document for the user.[m
+  */[m
+[31m-export const suspendUser = async (userId: string) => {[m
+[31m-    console.log(`API Call: Suspending user with ID ${userId}...`);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    [m
+[31m-    const user = mockUsers.find(u => u.id === userId);[m
+[31m-    if (user) {[m
+[31m-        user.status = user.status === 'Active' ? 'Suspended' : 'Active';[m
+[31m-    }[m
+[31m-    [m
+[31m-    return { success: true };[m
+[32m+[m[32mexport const uploadDocument = async (formData: FormData): Promise<void> => {[m
+[32m+[m[32m    await apiClient.post('/api/Account/upload-document', formData, {[m
+[32m+[m[32m        headers: {[m
+[32m+[m[32m            'Content-Type': 'multipart/form-data',[m
+[32m+[m[32m        },[m
+[32m+[m[32m    });[m
+ };[m
+ [m
+[1mdiff --git a/src/components/layout/Navbar.tsx b/src/components/layout/Navbar.tsx[m
+[1mindex 20b67c0..aedcb5b 100644[m
+[1m--- a/src/components/layout/Navbar.tsx[m
+[1m+++ b/src/components/layout/Navbar.tsx[m
+[36m@@ -13,16 +13,9 @@[m [mconst Navbar: React.FC = () => {[m
+     };[m
+ [m
+     const getDashboardPath = () => {[m
+[31m-        if (!auth?.user) return '/';[m
+[31m-        switch (auth.user.userType) {[m
+[31m-            case 'admin':[m
+[31m-                return '/dashboard/admin';[m
+[31m-            case 'provider':[m
+[31m-                return '/dashboard/provider';[m
+[31m-            case 'user':[m
+[31m-            default:[m
+[31m-                return '/dashboard/user';[m
+[31m-        }[m
+[32m+[m[32m        if (!auth?.user) return '/dashboard/profile'; // المسار الافتراضي[m
+[32m+[m[32m        // يمكن تعديل هذا ليوجه كل مستخدم لصفحته الرئيسية في الداش بورد[m
+[32m+[m[32m        return '/dashboard/profile';[m
+     };[m
+ [m
+     return ([m
+[36m@@ -32,9 +25,11 @@[m [mconst Navbar: React.FC = () => {[m
+                     <span className="text-3xl text-purple-600 font-bold">TourPal</span>[m
+                 </Link>[m
+ [m
+[32m+[m[32m                {/* روابط التنقل الرئيسية */}[m
+                 <div className="hidden md:flex items-center gap-6">[m
+                     <NavLink to="/" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Home</NavLink>[m
+[31m-                    <NavLink to="/search" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Search</NavLink>[m
+[32m+[m[32m                    <NavLink to="/search" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Find a Car</NavLink>[m
+[32m+[m[32m                    <NavLink to="/guides" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Find a Guide</NavLink> {/* الرابط الجديد */}[m
+                 </div>[m
+ [m
+                 <div className="hidden md:flex items-center gap-4">[m
+[36m@@ -64,4 +59,3 @@[m [mconst Navbar: React.FC = () => {[m
+ };[m
+ [m
+ export default Navbar;[m
+[31m-[m
+[1mdiff --git a/src/components/layout/Sidebar.tsx b/src/components/layout/Sidebar.tsx[m
+[1mindex 8b4044e..a9594be 100644[m
+[1m--- a/src/components/layout/Sidebar.tsx[m
+[1m+++ b/src/components/layout/Sidebar.tsx[m
+[36m@@ -1,21 +1,23 @@[m
+[31m-import React from 'react';[m
+[31m-import { NavLink, useNavigate } from 'react-router-dom';[m
+[31m-import { useAuth } from '../../context/AuthContext';[m
+[31m-import Button from '../ui/Button';[m
+[31m-[m
+[32m+[m[32m// ... imports ...[m
+ const navLinks = {[m
+     user: [[m
+[31m-        { path: '/dashboard', label: 'My Bookings', icon: 'receipt_long' },[m
+[32m+[m[32m        { path: '/dashboard/user', label: 'My Bookings', icon: 'receipt_long' },[m
+[32m+[m[32m        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },[m
+[32m+[m[32m        { path: '/dashboard/create-ad', label: 'Create Ad', icon: 'post_add' }, // رابط جديد[m
+     ],[m
+     provider: [[m
+[31m-        { path: '/provider-dashboard', label: 'Overview', icon: 'dashboard' },[m
+[32m+[m[32m        { path: '/dashboard/provider', label: 'My Vehicles', icon: 'directions_car' },[m
+[32m+[m[32m        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },[m
+[32m+[m[32m        { path: '/dashboard/create-ad', label: 'Create Ad', icon: 'post_add' }, // رابط جديد[m
+     ],[m
+     admin: [[m
+[31m-        { path: '/admin-dashboard', label: 'Overview', icon: 'dashboard' },[m
+[32m+[m[32m        { path: '/dashboard/admin', label: 'Management', icon: 'shield_person' },[m
+[32m+[m[32m        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },[m
+     ],[m
+ }[m
+ [m
+ const Sidebar: React.FC = () => {[m
+[32m+[m[32m    // ... existing code ...[m
+     const { user, logout } = useAuth();[m
+     const navigate = useNavigate();[m
+     [m
+[36m@@ -25,15 +27,13 @@[m [mconst Sidebar: React.FC = () => {[m
+     };[m
+ [m
+     const userRole = user?.userType || 'user';[m
+[31m-    const roleNavLinks = navLinks[userRole] || [];[m
+[32m+[m[32m    // Ensure that roleNavLinks is an array even if userRole does not match[m
+[32m+[m[32m    const roleNavLinks = navLinks[userRole as keyof typeof navLinks] || [];[m
+ [m
+     return ([m
+         <aside className="w-64 bg-white p-4 flex flex-col justify-between border-r">[m
+             <div>[m
+[31m-                <div className="mb-8 p-2">[m
+[31m-                    <h1 className="text-2xl font-bold text-purple-700">TourPal</h1>[m
+[31m-                    {user && <p className="text-gray-600">Welcome, {user.fullName}</p>}[m
+[31m-                </div>[m
+[32m+[m[32m                {/* ... existing header ... */}[m
+                 <nav className="flex flex-col gap-2">[m
+                     {roleNavLinks.map(link => ([m
+                         <NavLink key={link.path} to={link.path} className={({ isActive }) =>[m
+[36m@@ -47,14 +47,9 @@[m [mconst Sidebar: React.FC = () => {[m
+                     ))}[m
+                 </nav>[m
+             </div>[m
+[31m-            <div className="p-2">[m
+[31m-                <Button variant="secondary" onClick={handleLogout} className="w-full">[m
+[31m-                    Log Out[m
+[31m-                </Button>[m
+[31m-            </div>[m
+[32m+[m[32m            {/* ... existing logout button ... */}[m
+         </aside>[m
+     );[m
+ };[m
+ [m
+ export default Sidebar;[m
+[31m-[m
+[1mdiff --git a/src/pages/car/CarDetail.tsx b/src/pages/car/CarDetail.tsx[m
+[1mindex b8fca3d..56b923d 100644[m
+[1m--- a/src/pages/car/CarDetail.tsx[m
+[1m+++ b/src/pages/car/CarDetail.tsx[m
+[36m@@ -1,91 +1,123 @@[m
+ import React, { useState, useEffect } from 'react';[m
+[31m-import { useParams } from 'react-router-dom';[m
+[31m-// import { getCarDetails } from '../../api/carService'; // This would be the real API call[m
+[32m+[m[32mimport { useParams, useNavigate } from 'react-router-dom';[m
+[32m+[m[32mimport { getCarDetails } from '../../api/carService';[m
+[32m+[m[32mimport { createBookingRequest } from '../../api/bookingService'; // استيراد دالة الحجز[m
+[32m+[m[32mimport type { Car } from '../../api/carService';[m
+[32m+[m[32mimport { useAuth } from '../../context/AuthContext'; // للتحقق من تسجيل الدخول[m
+ import Button from '../../components/ui/Button';[m
+[31m-[m
+[31m-// Mock API function for demonstration[m
+[31m-const getMockCarDetails = async (id: string) => {[m
+[31m-    console.log(`Fetching details for car ID: ${id}`);[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    // Return mock data[m
+[31m-    return {[m
+[31m-        id,[m
+[31m-        brand: 'Toyota',[m
+[31m-        model: 'Land Cruiser',[m
+[31m-        year: 2023,[m
+[31m-        pricePerDay: 150,[m
+[31m-        description: 'A reliable and powerful SUV perfect for both city driving and off-road adventures. Features spacious seating, advanced safety systems, and a premium sound system.',[m
+[31m-        imageUrl: 'https://images.unsplash.com/photo-1617083299395-4227835b3c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',[m
+[31m-        features: ['Air Conditioning', 'GPS Navigation', 'Bluetooth', '4-Wheel Drive'],[m
+[31m-    };[m
+[31m-};[m
+[31m-[m
+[31m-[m
+[31m-// Define type for car details[m
+[31m-interface CarDetails {[m
+[31m-    id: string;[m
+[31m-    brand: string;[m
+[31m-    model: string;[m
+[31m-    year: number;[m
+[31m-    pricePerDay: number;[m
+[31m-    description: string;[m
+[31m-    imageUrl: string;[m
+[31m-    features: string[];[m
+[31m-}[m
+[32m+[m[32mimport BookingModal from '../../components/booking/BookingModal'; // استيراد المكون الجديد[m
+ [m
+ const CarDetail: React.FC = () => {[m
+     const { id } = useParams<{ id: string }>();[m
+[31m-    const [car, setCar] = useState<CarDetails | null>(null);[m
+[32m+[m[32m    const navigate = useNavigate();[m
+[32m+[m[32m    const { isAuthenticated } = useAuth(); // جلب حالة تسجيل الدخول[m
+[32m+[m
+[32m+[m[32m    const [car, setCar] = useState<Car | null>(null);[m
+     const [isLoading, setIsLoading] = useState(true);[m
+[32m+[m[32m    const [error, setError] = useState<string | null>(null);[m
+[32m+[m[32m    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);[m
+ [m
+     useEffect(() => {[m
+[32m+[m[32m        // ... existing useEffect code ...[m
+         if (id) {[m
+             const fetchCarDetails = async () => {[m
+                 setIsLoading(true);[m
+[31m-                const data = await getMockCarDetails(id);[m
+[31m-                setCar(data);[m
+[31m-                setIsLoading(false);[m
+[32m+[m[32m                setError(null);[m
+[32m+[m[32m                try {[m
+[32m+[m[32m                    const data = await getCarDetails(id);[m
+[32m+[m[32m                    setCar(data);[m
+[32m+[m[32m                } catch (err) {[m
+[32m+[m[32m                    setError('Failed to load car details. Please try again later.');[m
+[32m+[m[32m                    console.error(err);[m
+[32m+[m[32m                } finally {[m
+[32m+[m[32m                    setIsLoading(false);[m
+[32m+[m[32m                }[m
+             };[m
+             fetchCarDetails();[m
+         }[m
+     }, [id]);[m
+ [m
+[32m+[m[32m    const handleBookingSubmit = async (details: { startDate: string; endDate: string; requestNotes: string }) => {[m
+[32m+[m[32m        if (!id) return;[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await createBookingRequest({[m
+[32m+[m[32m                carId: id,[m
+[32m+[m[32m                ...details,[m
+[32m+[m[32m            });[m
+[32m+[m[32m            setIsBookingModalOpen(false);[m
+[32m+[m[32m            alert('Your booking request has been sent successfully!');[m
+[32m+[m[32m            navigate('/dashboard/user'); // توجيه المستخدم لصفحة حجوزاته[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Booking failed:", error);[m
+[32m+[m[32m            alert("Failed to send booking request. Please try again.");[m
+[32m+[m[32m        }[m
+[32m+[m[32m    };[m
+[32m+[m
+[32m+[m[32m    const handleBookNowClick = () => {[m
+[32m+[m[32m        if (!isAuthenticated) {[m
+[32m+[m[32m            navigate('/login'); // إذا لم يكن مسجلاً، اذهب لصفحة الدخول[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            setIsBookingModalOpen(true); // إذا كان مسجلاً، افتح نافذة الحجز[m
+[32m+[m[32m        }[m
+[32m+[m[32m    };[m
+[32m+[m
+[32m+[m[32m    // ... existing loading/error/not found checks ...[m
+     if (isLoading) {[m
+         return <div className="text-center py-20">Loading car details...</div>;[m
+     }[m
+ [m
+[32m+[m[32m    if (error) {[m
+[32m+[m[32m        return <div className="text-center py-20 text-red-500">{error}</div>;[m
+[32m+[m[32m    }[m
+[32m+[m
+     if (!car) {[m
+         return <div className="text-center py-20">Car not found.</div>;[m
+     }[m
+ [m
+[32m+[m[32m    const primaryImage = car.carImages?.find(img => img.isPrimary)?.imageUrl || 'https://placehold.co/1200x800?text=No+Image';[m
+[32m+[m
+     return ([m
+[31m-        <div className="container mx-auto px-6 py-12">[m
+[31m-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">[m
+[31m-                {/* Image Gallery */}[m
+[31m-                <div>[m
+[31m-                    <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-auto object-cover rounded-lg shadow-lg" />[m
+[31m-                </div>[m
+[32m+[m[32m        <>[m
+[32m+[m[32m            <div className="container mx-auto px-6 py-12">[m
+[32m+[m[32m                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">[m
+[32m+[m[32m                    {/* Image Gallery */}[m
+[32m+[m[32m                    <div>[m
+[32m+[m[32m                        <img src={primaryImage} alt={`${car.brand} ${car.model}`} className="w-full h-auto object-cover rounded-lg shadow-lg" />[m
+[32m+[m[32m                    </div>[m
+ [m
+[31m-                {/* Car Info and Booking */}[m
+[31m-                <div>[m
+[31m-                    <h1 className="text-4xl font-extrabold mb-2">{car.brand} {car.model}</h1>[m
+[31m-                    <p className="text-xl text-gray-500 mb-6">Year: {car.year}</p>[m
+[31m-                    <p className="text-gray-700 mb-6">{car.description}</p>[m
+[31m-                    [m
+[31m-                    <h2 className="text-2xl font-bold mb-4">Key Features</h2>[m
+[31m-                    <ul className="list-disc list-inside mb-8 grid grid-cols-2 gap-2 text-gray-600">[m
+[31m-                        {car.features.map(feature => <li key={feature}>{feature}</li>)}[m
+[31m-                    </ul>[m
+[32m+[m[32m                    {/* Car Info and Booking */}[m
+[32m+[m[32m                    <div>[m
+[32m+[m[32m                        <h1 className="text-4xl font-extrabold mb-2">{car.brand} {car.model}</h1>[m
+[32m+[m[32m                        <p className="text-xl text-gray-500 mb-6">Year: {car.year}</p>[m
+[32m+[m[32m                        <p className="text-gray-700 mb-6">A great vehicle for your next trip.</p>[m
+[32m+[m[41m                        [m
+[32m+[m[32m                        <h2 className="text-2xl font-bold mb-4">Key Features</h2>[m
+[32m+[m[32m                        <ul className="list-disc list-inside mb-8 grid grid-cols-2 gap-2 text-gray-600">[m
+[32m+[m[32m                            <li>Air Conditioning</li>[m
+[32m+[m[32m                            <li>GPS Navigation</li>[m
+[32m+[m[32m                            <li>Bluetooth</li>[m
+[32m+[m[32m                        </ul>[m
+ [m
+[31m-                    <div className="bg-gray-50 p-6 rounded-lg">[m
+[31m-                        <div className="flex items-center justify-between">[m
+[31m-                            <p className="text-3xl font-bold text-purple-600">${car.pricePerDay}<span className="text-lg font-normal text-gray-500">/day</span></p>[m
+[31m-                            <Button size="lg">Book Now</Button>[m
+[32m+[m[32m                        <div className="bg-gray-50 p-6 rounded-lg">[m
+[32m+[m[32m                            <div className="flex items-center justify-between">[m
+[32m+[m[32m                                <p className="text-3xl font-bold text-purple-600">${car.pricePerDay}<span className="text-lg font-normal text-gray-500">/day</span></p>[m
+[32m+[m[32m                                <Button size="lg" onClick={handleBookNowClick}>Book Now</Button>[m
+[32m+[m[32m                            </div>[m
+                         </div>[m
+                     </div>[m
+                 </div>[m
+             </div>[m
+[31m-        </div>[m
+[32m+[m
+[32m+[m[32m            {/* Render the modal */}[m
+[32m+[m[32m            {car && ([m
+[32m+[m[32m                <BookingModal[m
+[32m+[m[32m                    isOpen={isBookingModalOpen}[m
+[32m+[m[32m                    onClose={() => setIsBookingModalOpen(false)}[m
+[32m+[m[32m                    onSubmit={handleBookingSubmit}[m
+[32m+[m[32m                    carPricePerDay={car.pricePerDay}[m
+[32m+[m[32m                />[m
+[32m+[m[32m            )}[m
+[32m+[m[32m        </>[m
+     );[m
+ };[m
+ [m
+[1mdiff --git a/src/pages/dashboard/AdminDashboard.tsx b/src/pages/dashboard/AdminDashboard.tsx[m
+[1mindex ff33761..d3760dd 100644[m
+[1m--- a/src/pages/dashboard/AdminDashboard.tsx[m
+[1m+++ b/src/pages/dashboard/AdminDashboard.tsx[m
+[36m@@ -1,164 +1,261 @@[m
+ import React, { useState, useEffect } from 'react';[m
+[31m-import { getPendingApprovals, approveUser, suspendUser, getUsersList } from '../../api/userService'; // Mock API functions[m
+[32m+[m[32mimport {[m[41m [m
+[32m+[m[32m  getPendingApprovals,[m[41m [m
+[32m+[m[32m  approveUser,[m[41m [m
+[32m+[m[32m  suspendUser,[m[41m [m
+[32m+[m[32m  getUsersList,[m[41m [m
+[32m+[m[32m  PendingUser,[m[41m [m
+[32m+[m[32m  User,[m[41m [m
+[32m+[m[32m  Document as UserDocument[m[41m [m
+[32m+[m[32m} from '../../api/userService';[m
+[32m+[m[32mimport { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from '../../api/bannerService';[m
+ import Button from '../../components/ui/Button';[m
+ import Modal from '../../components/ui/Modal';[m
+ [m
+[31m-// Define types for the data[m
+[31m-interface PendingUser {[m
+[31m-  userId: string;[m
+[31m-  fullName: string;[m
+[31m-  userType: string;[m
+[31m-  createdAt: string;[m
+[31m-}[m
+[31m-[m
+[31m-interface User {[m
+[31m-    id: string;[m
+[31m-    fullName: string;[m
+[31m-    email: string;[m
+[31m-    userType: string;[m
+[31m-    status: string;[m
+[31m-}[m
+[31m-[m
+ const AdminDashboard: React.FC = () => {[m
+[32m+[m[32m    // State for user management[m
+     const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);[m
+     const [users, setUsers] = useState<User[]>([]);[m
+[32m+[m
+[32m+[m[32m    // State for advertisement management[m
+[32m+[m[32m    const [pendingAds, setPendingAds] = useState<AdvertisementDto[]>([]);[m
+[32m+[m
+[32m+[m[32m    // General state[m
+     const [isLoading, setIsLoading] = useState(true);[m
+[31m-    const [activeTab, setActiveTab] = useState('approvals');[m
+[32m+[m[32m    const [activeTab, setActiveTab] = useState<'approvals' | 'users' | 'ads'>('approvals');[m
+[32m+[m[41m    [m
+[32m+[m[32m    // State for the documents modal[m
+[32m+[m[32m    const [isDocModalOpen, setIsDocModalOpen] = useState(false);[m
+[32m+[m[32m    const [selectedUserDocs, setSelectedUserDocs] = useState<UserDocument[]>([]);[m
+[32m+[m[32m    const [selectedUserName, setSelectedUserName] = useState('');[m
+ [m
+     useEffect(() => {[m
+         const fetchData = async () => {[m
+             setIsLoading(true);[m
+[31m-            if (activeTab === 'approvals') {[m
+[31m-                const response = await getPendingApprovals();[m
+[31m-                setPendingUsers(response);[m
+[31m-            } else if (activeTab === 'users') {[m
+[31m-                const response = await getUsersList();[m
+[31m-                setUsers(response);[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                if (activeTab === 'approvals') {[m
+[32m+[m[32m                    const response = await getPendingApprovals();[m
+[32m+[m[32m                    setPendingUsers(response || []);[m
+[32m+[m[32m                } else if (activeTab === 'users') {[m
+[32m+[m[32m                    const response = await getUsersList();[m
+[32m+[m[32m                    setUsers(response || []);[m
+[32m+[m[32m                } else if (activeTab === 'ads') {[m
+[32m+[m[32m                    const response = await getPendingAdvertisements();[m
+[32m+[m[32m                    setPendingAds(response || []);[m
+[32m+[m[32m                }[m
+[32m+[m[32m            } catch (error) {[m
+[32m+[m[32m                console.error("Failed to fetch data:", error);[m
+[32m+[m[32m                alert("Could not fetch data. Please try refreshing the page.");[m
+[32m+[m[32m            } finally {[m
+[32m+[m[32m                setIsLoading(false);[m
+             }[m
+[31m-            setIsLoading(false);[m
+         };[m
+         fetchData();[m
+     }, [activeTab]);[m
+ [m
+[32m+[m[32m    // User handling functions[m
+     const handleApprove = async (userId: string) => {[m
+[31m-        await approveUser({ userId, status: 'Approved', notes: 'Approved by admin' });[m
+[31m-        setPendingUsers(pendingUsers.filter(user => user.userId !== userId));[m
+[31m-        alert('User approved successfully!');[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await approveUser({ userId, status: 'Approved', notes: 'Approved by admin' });[m
+[32m+[m[32m            setPendingUsers(prevUsers => prevUsers.filter(user => user.userId !== userId));[m
+[32m+[m[32m            alert('User approved successfully!');[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to approve user:", error);[m
+[32m+[m[32m            alert("An error occurred while approving the user.");[m
+[32m+[m[32m        }[m
+     };[m
+[31m-    [m
+[32m+[m
+     const handleReject = async (userId: string) => {[m
+[31m-        await approveUser({ userId, status: 'Rejected', notes: 'Rejected by admin' });[m
+[31m-        setPendingUsers(pendingUsers.filter(user => user.userId !== userId));[m
+[31m-        alert('User rejected successfully!');[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await approveUser({ userId, status: 'Rejected', notes: 'Rejected by admin' });[m
+[32m+[m[32m            setPendingUsers(prevUsers => prevUsers.filter(user => user.userId !== userId));[m
+[32m+[m[32m            alert('User rejected successfully!');[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to reject user:", error);[m
+[32m+[m[32m            alert("An error occurred while rejecting the user.");[m
+[32m+[m[32m        }[m
+     };[m
+ [m
+     const handleSuspend = async (userId: string) => {[m
+[31m-        await suspendUser(userId);[m
+[31m-        setUsers(users.map(user => user.id === userId ? { ...user, status: 'Suspended' } : user));[m
+[31m-        alert('User suspended successfully!');[m
+[32m+[m[32m        if (!window.confirm("Are you sure you want to suspend this user?")) return;[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await suspendUser(userId);[m
+[32m+[m[32m            // Refresh the users list to show the change[m
+[32m+[m[32m            const response = await getUsersList();[m
+[32m+[m[32m            setUsers(response || []);[m
+[32m+[m[32m            alert('User suspended successfully!');[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to suspend user:", error);[m
+[32m+[m[32m            alert("An error occurred while suspending the user.");[m
+[32m+[m[32m        }[m
+     };[m
+ [m
+[32m+[m[32m    // This function now takes the user object directly, no need for a new API call.[m
+[32m+[m[32m    const handleViewDocuments = (user: PendingUser) => {[m
+[32m+[m[32m        setSelectedUserDocs(user.documents || []);[m
+[32m+[m[32m        setSelectedUserName(user.fullName);[m
+[32m+[m[32m        setIsDocModalOpen(true);[m
+[32m+[m[32m    };[m
+ [m
+[31m-  return ([m
+[31m-    <div className="p-8">[m
+[31m-        <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>[m
+[32m+[m[32m    // Ad handling function[m
+[32m+[m[32m    const handleAdApproval = async (adId: string, isApproved: boolean) => {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await handleAdvertisement(adId, isApproved);[m
+[32m+[m[32m            setPendingAds(prevAds => prevAds.filter(ad => ad.id !== adId));[m
+[32m+[m[32m            alert(`Advertisement has been ${isApproved ? 'approved' : 'rejected'}.`);[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to handle advertisement:", error);[m
+[32m+[m[32m            alert('An error occurred. Please try again.');[m
+[32m+[m[32m        }[m
+[32m+[m[32m    };[m
+ [m
+[31m-        {/* Tabs */}[m
+[31m-        <div className="border-b border-gray-200 mb-6">[m
+[31m-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">[m
+[31m-                <button[m
+[31m-                    onClick={() => setActiveTab('approvals')}[m
+[31m-                    className={`${[m
+[31m-                        activeTab === 'approvals'[m
+[31m-                            ? 'border-purple-500 text-purple-600'[m
+[31m-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'[m
+[31m-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}[m
+[31m-                >[m
+[31m-                    Pending Approvals[m
+[31m-                </button>[m
+[31m-                <button[m
+[31m-                    onClick={() => setActiveTab('users')}[m
+[31m-                    className={`${[m
+[31m-                        activeTab === 'users'[m
+[31m-                            ? 'border-purple-500 text-purple-600'[m
+[31m-                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'[m
+[31m-                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}[m
+[31m-                >[m
+[31m-                    User Management[m
+[31m-                </button>[m
+[31m-            </nav>[m
+[31m-        </div>[m
+[32m+[m[32m    return ([m
+[32m+[m[32m        <div className="p-8">[m
+[32m+[m[32m            <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>[m
+ [m
+[31m-        {isLoading ? ([m
+[31m-            <p>Loading...</p>[m
+[31m-        ) : ([m
+[31m-            <div>[m
+[31m-                {activeTab === 'approvals' && ([m
+[31m-                    <div>[m
+[31m-                        <h2 className="text-xl font-semibold mb-4">Membership Requests</h2>[m
+[31m-                        <div className="bg-white shadow overflow-hidden sm:rounded-lg">[m
+[31m-                            <ul className="divide-y divide-gray-200">[m
+[31m-                                {pendingUsers.length > 0 ? pendingUsers.map((user) => ([m
+[31m-                                    <li key={user.userId} className="p-4 sm:p-6">[m
+[31m-                                        <div className="flex items-center justify-between">[m
+[31m-                                            <div>[m
+[31m-                                                <p className="text-lg font-medium text-purple-600">{user.fullName}</p>[m
+[31m-                                                <p className="text-sm text-gray-500">{user.userType} - Requested on {new Date(user.createdAt).toLocaleDateString()}</p>[m
+[31m-                                            </div>[m
+[31m-                                            <div className="flex space-x-4">[m
+[31m-                                                <Button onClick={() => handleApprove(user.userId)}>Approve</Button>[m
+[31m-                                                <Button variant="danger" onClick={() => handleReject(user.userId)}>Reject</Button>[m
+[32m+[m[32m            {/* Tabs */}[m
+[32m+[m[32m            <div className="border-b border-gray-200 mb-6">[m
+[32m+[m[32m                <nav className="-mb-px flex space-x-8" aria-label="Tabs">[m
+[32m+[m[32m                    <button[m
+[32m+[m[32m                      onClick={() => setActiveTab('approvals')}[m
+[32m+[m[32m                      className={`${activeTab === 'approvals' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                        Pending Approvals ({pendingUsers.length})[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                    <button[m
+[32m+[m[32m                      onClick={() => setActiveTab('users')}[m
+[32m+[m[32m                      className={`${activeTab === 'users' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                        User Management[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                    <button[m
+[32m+[m[32m                      onClick={() => setActiveTab('ads')}[m
+[32m+[m[32m                      className={`${activeTab === 'ads' ? 'border-purple-500 text-purple-600' : 'border-transparent text-gray-500'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}[m
+[32m+[m[32m                    >[m
+[32m+[m[32m                        Advertisements ({pendingAds.length})[m
+[32m+[m[32m                    </button>[m
+[32m+[m[32m                </nav>[m
+[32m+[m[32m            </div>[m
+[32m+[m
+[32m+[m[32m            {isLoading ? ([m
+[32m+[m[32m                <p>Loading...</p>[m
+[32m+[m[32m            ) : ([m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                    {activeTab === 'approvals' && ([m
+[32m+[m[32m                        <div>[m
+[32m+[m[32m                            <h2 className="text-xl font-semibold mb-4">Membership Requests</h2>[m
+[32m+[m[32m                            <div className="bg-white shadow overflow-hidden sm:rounded-lg">[m
+[32m+[m[32m                                <ul className="divide-y divide-gray-200">[m
+[32m+[m[32m                                    {pendingUsers.length > 0 ? pendingUsers.map((user) => ([m
+[32m+[m[32m                                        <li key={user.userId} className="p-4 sm:p-6">[m
+[32m+[m[32m                                            <div className="flex flex-wrap items-center justify-between gap-4">[m
+[32m+[m[32m                                                <div>[m
+[32m+[m[32m                                                    <p className="text-lg font-medium text-purple-600">{user.fullName}</p>[m
+[32m+[m[32m                                                    <p className="text-sm text-gray-500">{user.userType} - Requested on {new Date(user.createdAt).toLocaleDateString()}</p>[m
+[32m+[m[32m                                                </div>[m
+[32m+[m[32m                                                <div className="flex-shrink-0 flex items-center space-x-2 sm:space-x-4">[m
+[32m+[m[32m                                                    <Button variant="secondary" size="sm" onClick={() => handleViewDocuments(user)}>View Documents</Button>[m
+[32m+[m[32m                                                    <Button size="sm" onClick={() => handleApprove(user.userId)}>Approve</Button>[m
+[32m+[m[32m                                                    <Button variant="danger" size="sm" onClick={() => handleReject(user.userId)}>Reject</Button>[m
+[32m+[m[32m                                                </div>[m
+                                             </div>[m
+[31m-                                        </div>[m
+[31m-                                    </li>[m
+[31m-                                )) : <p className="p-4">No pending approvals.</p>}[m
+[31m-                            </ul>[m
+[32m+[m[32m                                        </li>[m
+[32m+[m[32m                                    )) : <p className="p-6 text-center text-gray-500">No pending approvals.</p>}[m
+[32m+[m[32m                                </ul>[m
+[32m+[m[32m                            </div>[m
+                         </div>[m
+[31m-                    </div>[m
+[31m-                )}[m
+[32m+[m[32m                    )}[m
+ [m
+[31m-                {activeTab === 'users' && ([m
+[31m-                     <div>[m
+[31m-                        <h2 className="text-xl font-semibold mb-4">All Users</h2>[m
+[31m-                        <div className="bg-white shadow overflow-x-auto sm:rounded-lg">[m
+[31m-                           <table className="min-w-full divide-y divide-gray-200">[m
+[31m-                                <thead className="bg-gray-50">[m
+[31m-                                    <tr>[m
+[31m-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>[m
+[31m-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>[m
+[31m-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>[m
+[31m-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>[m
+[31m-                                        <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>[m
+[31m-                                    </tr>[m
+[31m-                                </thead>[m
+[31m-                                <tbody className="bg-white divide-y divide-gray-200">[m
+[31m-                                    {users.map((user) => ([m
+[31m-                                        <tr key={user.id}>[m
+[31m-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullName}</td>[m
+[31m-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>[m
+[31m-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.userType}</td>[m
+[31m-                                            <td className="px-6 py-4 whitespace-nowrap">[m
+[31m-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Suspended' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>[m
+[31m-                                                    {user.status}[m
+[31m-                                                </span>[m
+[31m-                                            </td>[m
+[31m-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">[m
+[31m-                                                {user.status !== 'Suspended' && ([m
+[31m-                                                    <Button variant="danger" size="sm" onClick={() => handleSuspend(user.id)}>Suspend</Button>[m
+[31m-                                                )}[m
+[31m-                                            </td>[m
+[32m+[m[32m                    {activeTab === 'users' && ([m
+[32m+[m[32m                        <div>[m
+[32m+[m[32m                            <h2 className="text-xl font-semibold mb-4">All Users</h2>[m
+[32m+[m[32m                            <div className="bg-white shadow overflow-x-auto sm:rounded-lg">[m
+[32m+[m[32m                                <table className="min-w-full divide-y divide-gray-200">[m
+[32m+[m[32m                                    <thead className="bg-gray-50">[m
+[32m+[m[32m                                        <tr>[m
+[32m+[m[32m                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>[m
+[32m+[m[32m                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>[m
+[32m+[m[32m                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>[m
+[32m+[m[32m                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>[m
+[32m+[m[32m                                            <th scope="col" className="relative px-6 py-3"><span className="sr-only">Actions</span></th>[m
+                                         </tr>[m
+[31m-                                    ))}[m
+[31m-                                </tbody>[m
+[31m-                            </table>[m
+[32m+[m[32m                                    </thead>[m
+[32m+[m[32m                                    <tbody className="bg-white divide-y divide-gray-200">[m
+[32m+[m[32m                                        {users.map((user) => ([m
+[32m+[m[32m                                            <tr key={user.id}>[m
+[32m+[m[32m                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{user.fullName}</td>[m
+[32m+[m[32m                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.email}</td>[m
+[32m+[m[32m                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.userType}</td>[m
+[32m+[m[32m                                                <td className="px-6 py-4 whitespace-nowrap">[m
+[32m+[m[32m                                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.status === 'Suspended' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>[m
+[32m+[m[32m                                                        {user.status}[m
+[32m+[m[32m                                                    </span>[m
+[32m+[m[32m                                                </td>[m
+[32m+[m[32m                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">[m
+[32m+[m[32m                                                    {user.status !== 'Suspended' && ([m
+[32m+[m[32m                                                        <Button variant="danger" size="sm" onClick={() => handleSuspend(user.id)}>Suspend</Button>[m
+[32m+[m[32m                                                    )}[m
+[32m+[m[32m                                                </td>[m
+[32m+[m[32m                                            </tr>[m
+[32m+[m[32m                                        ))}[m
+[32m+[m[32m                                    </tbody>[m
+[32m+[m[32m                                </table>[m
+[32m+[m[32m                            </div>[m
+                         </div>[m
+[31m-                    </div>[m
+[31m-                )}[m
+[31m-            </div>[m
+[31m-        )}[m
+[31m-    </div>[m
+[31m-  );[m
+[32m+[m[32m                    )}[m
+[32m+[m
+[32m+[m[32m                    {activeTab === 'ads' && ([m
+[32m+[m[32m                        <div>[m
+[32m+[m[32m                            <h2 className="text-xl font-semibold mb-4">Pending Advertisements</h2>[m
+[32m+[m[32m                            <div className="bg-white shadow sm:rounded-lg">[m
+[32m+[m[32m                                <ul className="divide-y divide-gray-200">[m
+[32m+[m[32m                                    {pendingAds.length > 0 ? pendingAds.map((ad) => ([m
+[32m+[m[32m                                        <li key={ad.id} className="p-4 sm:p-6">[m
+[32m+[m[32m                                            <div className="flex items-center justify-between gap-4">[m
+[32m+[m[32m                                                <div className="flex items-center gap-4">[m
+[32m+[m[32m                                                    <img src={ad.imagePath} alt={ad.title} className="w-24 h-16 object-cover rounded-md"/>[m
+[32m+[m[32m                                                    <div>[m
+[32m+[m[32m                                                        <p className="font-medium text-purple-600">{ad.title}</p>[m
+[32m+[m[32m                                                        <p className="text-sm text-gray-500">[m
+[32m+[m[32m                                                            {new Date(ad.startDate).toLocaleDateString()} - {new Date(ad.endDate).toLocaleDateString()}[m
+[32m+[m[32m                                                        </p>[m
+[32m+[m[32m                                                    </div>[m
+[32m+[m[32m                                                </div>[m
+[32m+[m[32m                                                <div className="flex space-x-2">[m
+[32m+[m[32m                                                    <Button size="sm" onClick={() => handleAdApproval(ad.id, true)}>Approve</Button>[m
+[32m+[m[32m                                                    <Button variant="danger" size="sm" onClick={() => handleAdApproval(ad.id, false)}>Reject</Button>[m
+[32m+[m[32m                                                </div>[m
+[32m+[m[32m                                            </div>[m
+[32m+[m[32m                                        </li>[m
+[32m+[m[32m                                    )) : <p className="p-6 text-center text-gray-500">No pending advertisements.</p>}[m
+[32m+[m[32m                                </ul>[m
+[32m+[m[32m                            </div>[m
+[32m+[m[32m                        </div>[m
+[32m+[m[32m                    )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m            )}[m
+[32m+[m[41m            [m
+[32m+[m[32m            {/* Modal to display documents */}[m
+[32m+[m[32m            <Modal isOpen={isDocModalOpen} onClose={() => setIsDocModalOpen(false)} title={`Documents for ${selectedUserName}`}>[m
+[32m+[m[32m                <div>[m
+[32m+[m[32m                    {selectedUserDocs.length > 0 ? ([m
+[32m+[m[32m                        <ul className="space-y-3">[m
+[32m+[m[32m                            {selectedUserDocs.map((doc) => ([m
+[32m+[m[32m                                <li key={doc.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">[m
+[32m+[m[32m                                    <span className="font-medium text-gray-700">{doc.documentTypeName}</span>[m
+[32m+[m[32m                                    <a href={doc.filePath} target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">[m
+[32m+[m[32m                                        View[m
+[32m+[m[32m                                    </a>[m
+[32m+[m[32m                                </li>[m
+[32m+[m[32m                            ))}[m
+[32m+[m[32m                        </ul>[m
+[32m+[m[32m                    ) : ([m
+[32m+[m[32m                        <p className="text-center text-gray-500">This user has not uploaded any documents yet.</p>[m
+[32m+[m[32m                    )}[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m            </Modal>[m
+[32m+[m[32m        </div>[m
+[32m+[m[32m    );[m
+ };[m
+ [m
+ export default AdminDashboard;[m
+[31m-[m
+[1mdiff --git a/src/pages/dashboard/ProviderDashboard.tsx b/src/pages/dashboard/ProviderDashboard.tsx[m
+[1mindex 6a2e2ce..ca46b4f 100644[m
+[1m--- a/src/pages/dashboard/ProviderDashboard.tsx[m
+[1m+++ b/src/pages/dashboard/ProviderDashboard.tsx[m
+[36m@@ -1,56 +1,65 @@[m
+[31m-import React, { useState, useEffect } from 'react';[m
+[31m-import { getProviderCars, addCar, deleteCar } from '../../api/carService'; // Mock API functions[m
+[32m+[m[32mimport React, { useState, useEffect, useCallback } from 'react';[m
+[32m+[m[32mimport { getProviderCars, addCar, deleteCar } from '../../api/carService';[m
+[32m+[m[32mimport type { Car } from '../../api/carService';[m
+[32m+[m[32mimport type { CarFormData } from '../../components/dashboard/CarForm'; // Import form data type[m
+ import Button from '../../components/ui/Button';[m
+ import Modal from '../../components/ui/Modal';[m
+[31m-import Input from '../../components/ui/Input';[m
+[31m-[m
+[31m-// Define types for the data[m
+[31m-interface Car {[m
+[31m-  id: string;[m
+[31m-  brand: string;[m
+[31m-  model: string;[m
+[31m-  year: number;[m
+[31m-  pricePerDay: number;[m
+[31m-  status: string;[m
+[31m-}[m
+[32m+[m[32mimport CarForm from '../../components/dashboard/CarForm'; // Import the new form[m
+ [m
+ const ProviderDashboard: React.FC = () => {[m
+     const [cars, setCars] = useState<Car[]>([]);[m
+     const [isLoading, setIsLoading] = useState(true);[m
+[32m+[m[32m    const [isSubmitting, setIsSubmitting] = useState(false);[m
+     const [isModalOpen, setIsModalOpen] = useState(false);[m
+[31m-    const [newCar, setNewCar] = useState({ brand: '', model: '', year: 2024, pricePerDay: 100 });[m
+ [m
+[31m-    useEffect(() => {[m
+[31m-        const fetchCars = async () => {[m
+[31m-            setIsLoading(true);[m
+[31m-            const response = await getProviderCars(); // API call[m
+[32m+[m[32m    const fetchCars = useCallback(async () => {[m
+[32m+[m[32m        setIsLoading(true);[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            const response = await getProviderCars();[m
+             setCars(response);[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to fetch provider cars:", error);[m
+[32m+[m[32m        } finally {[m
+             setIsLoading(false);[m
+[31m-        };[m
+[31m-        fetchCars();[m
+[32m+[m[32m        }[m
+     }, []);[m
+ [m
+[31m-    const handleAddCar = async (e: React.FormEvent) => {[m
+[31m-        e.preventDefault();[m
+[31m-        const addedCar = await addCar(newCar);[m
+[31m-        setCars([...cars, addedCar]);[m
+[31m-        setIsModalOpen(false);[m
+[31m-        alert('Vehicle added successfully!');[m
+[32m+[m[32m    useEffect(() => {[m
+[32m+[m[32m        fetchCars();[m
+[32m+[m[32m    }, [fetchCars]);[m
+[32m+[m
+[32m+[m[32m    const handleAddCar = async (formData: CarFormData) => {[m
+[32m+[m[32m        setIsSubmitting(true);[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            await addCar(formData);[m
+[32m+[m[32m            setIsModalOpen(false);[m
+[32m+[m[32m            alert('Vehicle added successfully!');[m
+[32m+[m[32m            fetchCars(); // Refresh the list[m
+[32m+[m[32m        } catch (error) {[m
+[32m+[m[32m            console.error("Failed to add car:", error);[m
+[32m+[m[32m            alert('Failed to add vehicle. Please try again.');[m
+[32m+[m[32m        } finally {[m
+[32m+[m[32m            setIsSubmitting(false);[m
+[32m+[m[32m        }[m
+     };[m
+     [m
+     const handleDeleteCar = async (carId: string) => {[m
+         if (window.confirm('Are you sure you want to delete this vehicle?')) {[m
+[31m-            await deleteCar(carId);[m
+[31m-            setCars(cars.filter(car => car.id !== carId));[m
+[31m-            alert('Vehicle deleted successfully!');[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                await deleteCar(carId);[m
+[32m+[m[32m                setCars(cars.filter(car => car.id !== carId));[m
+[32m+[m[32m                alert('Vehicle deleted successfully!');[m
+[32m+[m[32m            } catch (error) {[m
+[32m+[m[32m                console.error("Failed to delete car:", error);[m
+[32m+[m[32m                alert('Failed to delete vehicle. Please try again.');[m
+[32m+[m[32m            }[m
+         }[m
+     };[m
+ [m
+[31m-[m
+   return ([m
+     <div className="p-8">[m
+         <div className="flex justify-between items-center mb-6">[m
+[31m-            <h1 className="text-3xl font-bold">Provider Dashboard</h1>[m
+[32m+[m[32m            <h1 className="text-3xl font-bold">My Vehicles</h1>[m
+             <Button onClick={() => setIsModalOpen(true)}>Add New Vehicle</Button>[m
+         </div>[m
+         [m
+[36m@@ -60,6 +69,7 @@[m [mconst ProviderDashboard: React.FC = () => {[m
+             <div className="bg-white shadow overflow-x-auto sm:rounded-lg">[m
+                 <table className="min-w-full divide-y divide-gray-200">[m
+                     <thead className="bg-gray-50">[m
+[32m+[m[32m                        {/* Table headers remain the same */}[m
+                         <tr>[m
+                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>[m
+                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>[m
+[36m@@ -79,7 +89,8 @@[m [mconst ProviderDashboard: React.FC = () => {[m
+                                         {car.status}[m
+                                     </span>[m
+                                 </td>[m
+[31m-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">[m
+[32m+[m[32m                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">[m
+[32m+[m[32m                                    <Button variant="secondary" size="sm">Edit</Button>[m
+                                     <Button variant="danger" size="sm" onClick={() => handleDeleteCar(car.id)}>Delete</Button>[m
+                                 </td>[m
+                             </tr>[m
+[36m@@ -92,18 +103,7 @@[m [mconst ProviderDashboard: React.FC = () => {[m
+         )}[m
+ [m
+         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add a New Vehicle">[m
+[31m-            <form onSubmit={handleAddCar}>[m
+[31m-                <div className="space-y-4">[m
+[31m-                    <Input label="Brand" value={newCar.brand} onChange={(e) => setNewCar({...newCar, brand: e.target.value})} required />[m
+[31m-                    <Input label="Model" value={newCar.model} onChange={(e) => setNewCar({...newCar, model: e.target.value})} required />[m
+[31m-                    <Input label="Year" type="number" value={newCar.year} onChange={(e) => setNewCar({...newCar, year: parseInt(e.target.value)})} required />[m
+[31m-                    <Input label="Price per Day ($)" type="number" value={newCar.pricePerDay} onChange={(e) => setNewCar({...newCar, pricePerDay: parseFloat(e.target.value)})} required />[m
+[31m-                </div>[m
+[31m-                <div className="mt-6 flex justify-end space-x-4">[m
+[31m-                    <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>[m
+[31m-                    <Button type="submit">Add Vehicle</Button>[m
+[31m-                </div>[m
+[31m-            </form>[m
+[32m+[m[32m            <CarForm onSubmit={handleAddCar} isLoading={isSubmitting} />[m
+         </Modal>[m
+     </div>[m
+   );[m
+[1mdiff --git a/src/pages/dashboard/UserDashboard.tsx b/src/pages/dashboard/UserDashboard.tsx[m
+[1mindex 6013ce0..2a99277 100644[m
+[1m--- a/src/pages/dashboard/UserDashboard.tsx[m
+[1m+++ b/src/pages/dashboard/UserDashboard.tsx[m
+[36m@@ -1,29 +1,9 @@[m
+ import React, { useState, useEffect } from 'react';[m
+[31m-// import { getUserBookings } from '../../api/bookingService'; // This would be the real API call[m
+[32m+[m[32mimport { getUserBookings } from '../../api/bookingService'; // استدعاء الدالة الحقيقية[m
+[32m+[m[32mimport type { Booking } from '../../api/bookingService'; // استيراد النوع[m
+ import Button from '../../components/ui/Button';[m
+ [m
+[31m-// Mock API function for demonstration until the backend is ready[m
+[31m-const getMockUserBookings = async () => {[m
+[31m-    // Simulate network delay[m
+[31m-    await new Promise(resolve => setTimeout(resolve, 500));[m
+[31m-    return [[m
+[31m-        { id: 'booking1', carName: 'Toyota Land Cruiser', provider: 'Desert Adventures', date: '2025-11-15', status: 'Upcoming' },[m
+[31m-        { id: 'booking2', carName: 'H1 Mini Bus', provider: 'Family Trips Co.', date: '2025-12-01', status: 'Upcoming' },[m
+[31m-        { id: 'booking3', carName: 'Toyota Camry', provider: 'City Car Rentals', date: '2025-08-20', status: 'Completed' },[m
+[31m-        { id: 'booking4', carName: 'Luxury Sedan', provider: 'VIP Transports', date: '2025-06-05', status: 'Completed' },[m
+[31m-        { id: 'booking5', carName: 'Ford Explorer', provider: 'Mountain Tours', date: '2025-07-10', status: 'Cancelled' },[m
+[31m-    ];[m
+[31m-};[m
+[31m-[m
+[31m-[m
+[31m-// Define a type for the booking data structure for type safety[m
+[31m-interface Booking {[m
+[31m-  id: string;[m
+[31m-  carName: string;[m
+[31m-  provider: string;[m
+[31m-  date: string;[m
+[31m-  status: 'Upcoming' | 'Completed' | 'Cancelled';[m
+[31m-}[m
+[32m+[m[32m// تم حذف الدالة الوهمية والنوع المحلي[m
+ [m
+ const UserDashboard: React.FC = () => {[m
+     const [allBookings, setAllBookings] = useState<Booking[]>([]);[m
+[36m@@ -35,9 +15,15 @@[m [mconst UserDashboard: React.FC = () => {[m
+     useEffect(() => {[m
+         const fetchBookings = async () => {[m
+             setIsLoading(true);[m
+[31m-            const response = await getMockUserBookings();[m
+[31m-            setAllBookings(response);[m
+[31m-            setIsLoading(false);[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                const response = await getUserBookings();[m
+[32m+[m[32m                setAllBookings(response);[m
+[32m+[m[32m            } catch (error) {[m
+[32m+[m[32m                console.error("Failed to fetch user bookings:", error);[m
+[32m+[m[32m                // Handle error state in UI[m
+[32m+[m[32m            } finally {[m
+[32m+[m[32m                setIsLoading(false);[m
+[32m+[m[32m            }[m
+         };[m
+         fetchBookings();[m
+     }, []);[m
+[36m@@ -110,4 +96,3 @@[m [mconst UserDashboard: React.FC = () => {[m
+ };[m
+ [m
+ export default UserDashboard;[m
+[31m-[m
+[1mdiff --git a/src/pages/home/Home.tsx b/src/pages/home/Home.tsx[m
+[1mindex 6ff3cd7..ff07dc0 100644[m
+[1m--- a/src/pages/home/Home.tsx[m
+[1m+++ b/src/pages/home/Home.tsx[m
+[36m@@ -1,6 +1,7 @@[m
+[31m-import React from 'react';[m
+[32m+[m[32mimport React, { useState, useEffect } from 'react';[m
+ import { Link } from 'react-router-dom';[m
+ import Button from '../../components/ui/Button';[m
+[32m+[m[32mimport { getBanners, BannerDto } from '../../api/bannerService'; // استيراد خدمة اللافتات[m
+ [m
+ const Home: React.FC = () => {[m
+     // Mock data for featured items[m
+[36m@@ -10,6 +11,21 @@[m [mconst Home: React.FC = () => {[m
+         { id: 3, name: '4x4 SUV', description: 'Explore deserts and mountains with a powerful vehicle.', price: 120, imageUrl: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },[m
+     ];[m
+ [m
+[32m+[m[32m    // حالة اللافتات[m
+[32m+[m[32m    const [banners, setBanners] = useState<BannerDto[]>([]);[m
+[32m+[m
+[32m+[m[32m    useEffect(() => {[m
+[32m+[m[32m        const fetchBanners = async () => {[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                const activeBanners = await getBanners();[m
+[32m+[m[32m                setBanners(activeBanners || []);[m
+[32m+[m[32m            } catch (error) {[m
+[32m+[m[32m                console.error("Could not fetch banners:", error);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        };[m
+[32m+[m[32m        fetchBanners();[m
+[32m+[m[32m    }, []);[m
+[32m+[m
+     return ([m
+         <div>[m
+             {/* Hero Section */}[m
+[36m@@ -27,6 +43,21 @@[m [mconst Home: React.FC = () => {[m
+                 </div>[m
+             </section>[m
+ [m
+[32m+[m[32m            {/* Banners Section - قسم الإعلانات (يعرض أول لافتة متاحة) */}[m
+[32m+[m[32m            {banners.length > 0 && ([m
+[32m+[m[32m                <section className="py-12 bg-gray-50">[m
+[32m+[m[32m                    <div className="container mx-auto px-6">[m
+[32m+[m[32m                        <a href={banners[0].linkUrl || '#'} target="_blank" rel="noopener noreferrer">[m
+[32m+[m[32m                            <img[m
+[32m+[m[32m                                src={banners[0].imageUrl}[m
+[32m+[m[32m                                alt={banners[0].title || 'Banner'}[m
+[32m+[m[32m                                className="w-full h-auto rounded-lg shadow-lg object-cover"[m
+[32m+[m[32m                            />[m
+[32m+[m[32m                        </a>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                </section>[m
+[32m+[m[32m            )}[m
+[32m+[m
+             {/* Featured Vehicles Section */}[m
+             <section className="py-16 bg-white">[m
+                 <div className="container mx-auto px-6">[m
+[36m@@ -55,4 +86,3 @@[m [mconst Home: React.FC = () => {[m
+ };[m
+ [m
+ export default Home;[m
+[31m-[m
+[1mdiff --git a/src/pages/search/Search.tsx b/src/pages/search/Search.tsx[m
+[1mindex 149891f..fb9aa1d 100644[m
+[1m--- a/src/pages/search/Search.tsx[m
+[1m+++ b/src/pages/search/Search.tsx[m
+[36m@@ -1,29 +1,23 @@[m
+ import React, { useState, useEffect } from 'react';[m
+ import { Link } from 'react-router-dom';[m
+[31m-import { getCarsList } from '../../api/carService'; // Correctly import the function[m
+[31m-[m
+[31m-// Define the type for a car object[m
+[31m-interface Car {[m
+[31m-    id: string;[m
+[31m-    brand: string;[m
+[31m-    model: string;[m
+[31m-    year: number;[m
+[31m-    pricePerDay: number;[m
+[31m-    imageUrl: string;[m
+[31m-}[m
+[32m+[m[32mimport { getCarsList } from '../../api/carService';[m
+[32m+[m[32mimport type { Car } from '../../api/carService'; // Import the type[m
+ [m
+ const Search: React.FC = () => {[m
+     const [cars, setCars] = useState<Car[]>([]);[m
+     const [isLoading, setIsLoading] = useState(true);[m
+[32m+[m[32m    const [error, setError] = useState<string | null>(null);[m
+ [m
+     useEffect(() => {[m
+         const fetchCars = async () => {[m
+             setIsLoading(true);[m
+[32m+[m[32m            setError(null);[m
+             try {[m
+                 const carList = await getCarsList();[m
+                 setCars(carList);[m
+[31m-            } catch (error) {[m
+[31m-                console.error("Failed to fetch cars:", error);[m
+[32m+[m[32m            } catch (err) {[m
+[32m+[m[32m                console.error("Failed to fetch cars:", err);[m
+[32m+[m[32m                setError("Could not load vehicles. Please try again later.");[m
+             } finally {[m
+                 setIsLoading(false);[m
+             }[m
+[36m@@ -32,36 +26,52 @@[m [mconst Search: React.FC = () => {[m
+         fetchCars();[m
+     }, []);[m
+ [m
+[32m+[m[32m    const renderContent = () => {[m
+[32m+[m[32m        if (isLoading) {[m
+[32m+[m[32m            return <p className="text-center text-gray-500">Loading vehicles...</p>;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        if (error) {[m
+[32m+[m[32m            return <p className="text-center text-red-500">{error}</p>;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        if (cars.length === 0) {[m
+[32m+[m[32m            return <p className="text-center text-gray-500">No available cars found.</p>;[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        return ([m
+[32m+[m[32m            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">[m
+[32m+[m[32m                {cars.map(car => ([m
+[32m+[m[32m                    <div key={car.id} className="bg-white rounded-lg shadow-md overflow-hidden group">[m
+[32m+[m[32m                        <img[m[41m [m
+[32m+[m[32m                            src={car.carImages?.[0]?.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=No+Image'}[m[41m [m
+[32m+[m[32m                            alt={`${car.brand} ${car.model}`}[m[41m [m
+[32m+[m[32m                            className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"[m[41m [m
+[32m+[m[32m                        />[m
+[32m+[m[32m                        <div className="p-6">[m
+[32m+[m[32m                            <h3 className="text-xl font-bold">{car.brand} {car.model} ({car.year})</h3>[m
+[32m+[m[32m                            <div className="mt-4 flex justify-between items-center">[m
+[32m+[m[32m                                <span className="text-lg font-bold text-purple-600">${car.pricePerDay}/day</span>[m
+[32m+[m[32m                                <Link to={`/car/${car.id}`} className="font-semibold text-purple-600 hover:text-purple-800">[m
+[32m+[m[32m                                    View Details[m
+[32m+[m[32m                                </Link>[m
+[32m+[m[32m                            </div>[m
+[32m+[m[32m                        </div>[m
+[32m+[m[32m                    </div>[m
+[32m+[m[32m                ))}[m
+[32m+[m[32m            </div>[m
+[32m+[m[32m        );[m
+[32m+[m[32m    };[m
+[32m+[m
+     return ([m
+         <div className="container mx-auto px-6 py-12">[m
+             <h1 className="text-4xl font-bold mb-8">Find Your Ride</h1>[m
+             [m
+[31m-            {/* Search Filters can be added here */}[m
+[32m+[m[32m            {/* Search Filters will be added here */}[m
+ [m
+[31m-            {isLoading ? ([m
+[31m-                <p className="text-center">Loading vehicles...</p>[m
+[31m-            ) : ([m
+[31m-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">[m
+[31m-                    {cars.length > 0 ? ([m
+[31m-                        cars.map(car => ([m
+[31m-                            <div key={car.id} className="bg-white rounded-lg shadow-md overflow-hidden group">[m
+[31m-                                <img src={car.imageUrl} alt={`${car.brand} ${car.model}`} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" />[m
+[31m-                                <div className="p-6">[m
+[31m-                                    <h3 className="text-xl font-bold">{car.brand} {car.model} ({car.year})</h3>[m
+[31m-                                    <div className="mt-4 flex justify-between items-center">[m
+[31m-                                        <span className="text-lg font-bold text-purple-600">${car.pricePerDay}/day</span>[m
+[31m-                                        <Link to={`/car/${car.id}`} className="font-semibold text-purple-600 hover:text-purple-800">[m
+[31m-                                            View Details[m
+[31m-                                        </Link>[m
+[31m-                                    </div>[m
+[31m-                                </div>[m
+[31m-                            </div>[m
+[31m-                        ))[m
+[31m-                    ) : ([m
+[31m-                        <p>No available cars found.</p>[m
+[31m-                    )}[m
+[31m-                </div>[m
+[31m-            )}[m
+[32m+[m[32m            <div className="mt-8">[m
+[32m+[m[32m                {renderContent()}[m
+[32m+[m[32m            </div>[m
+         </div>[m
+     );[m
+ };[m
+[1mdiff --git a/src/routes/AppRoutes.tsx b/src/routes/AppRoutes.tsx[m
+[1mindex 7aa7406..49e0eba 100644[m
+[1m--- a/src/routes/AppRoutes.tsx[m
+[1m+++ b/src/routes/AppRoutes.tsx[m
+[36m@@ -1,5 +1,5 @@[m
+ import React from 'react';[m
+[31m-import { Routes, Route } from 'react-router-dom';[m
+[32m+[m[32mimport { Route, Routes } from 'react-router-dom';[m
+ import MainLayout from '../layouts/MainLayout';[m
+ import DashboardLayout from '../layouts/DashboardLayout';[m
+ import Home from '../pages/home/Home';[m
+[36m@@ -11,35 +11,46 @@[m [mimport UserDashboard from '../pages/dashboard/UserDashboard';[m
+ import ProviderDashboard from '../pages/dashboard/ProviderDashboard';[m
+ import AdminDashboard from '../pages/dashboard/AdminDashboard';[m
+ import ProtectedRoute from './ProtectedRoute';[m
+[32m+[m[32mimport Profile from '../pages/dashboard/Profile';[m
+[32m+[m[32mimport TourGuideSearch from '../pages/tour-guide/TourGuideSearch';[m
+[32m+[m[32mimport TourGuideDetail from '../pages/tour-guide/TourGuideDetail';[m
+[32m+[m[32mimport CreateAdvertisement from '../pages/dashboard/CreateAdvertisement';[m
+ [m
+ const AppRoutes: React.FC = () => {[m
+   return ([m
+     <Routes>[m
+[31m-      {/* Public Routes using MainLayout */}[m
+[32m+[m[32m      {/* المسارات العامة */}[m
+       <Route path="/" element={<MainLayout />}>[m
+         <Route index element={<Home />} />[m
+         <Route path="search" element={<Search />} />[m
+[32m+[m[41m        [m
+[32m+[m[32m        {/* مسارات دليل المرشدين */}[m
+[32m+[m[32m        <Route path="guides" element={<TourGuideSearch />} />[m
+[32m+[m[32m        <Route path="guide/:id" element={<TourGuideDetail />} />[m
+[32m+[m
+[32m+[m[32m        <Route path="car/:id" element={<CarDetail />} />[m
+         <Route path="login" element={<Login />} />[m
+         <Route path="register" element={<Register />} />[m
+[31m-        <Route path="car/:id" element={<CarDetail />} />[m
+       </Route>[m
+ [m
+[31m-      {/* Protected Dashboard Routes using DashboardLayout */}[m
+[31m-      <Route [m
+[31m-        path="/dashboard" [m
+[32m+[m[32m      {/* المسارات المحمية (داشبورد) */}[m
+[32m+[m[32m      <Route[m
+[32m+[m[32m        path="/dashboard"[m
+         element={[m
+           <ProtectedRoute>[m
+             <DashboardLayout />[m
+           </ProtectedRoute>[m
+         }[m
+       >[m
+[32m+[m[32m        <Route index element={<Profile />} />[m
+         <Route path="user" element={<UserDashboard />} />[m
+         <Route path="provider" element={<ProviderDashboard />} />[m
+         <Route path="admin" element={<AdminDashboard />} />[m
+[32m+[m[32m        <Route path="profile" element={<Profile />} />[m
+[32m+[m[32m        <Route path="create-ad" element={<CreateAdvertisement />} /> {/* إضافة المسار الجديد */}[m
+       </Route>[m
+     </Routes>[m
+   );[m
+ };[m
+ [m
+ export default AppRoutes;[m
+[31m-[m

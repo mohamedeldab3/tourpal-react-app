@@ -13,16 +13,9 @@ const Navbar: React.FC = () => {
     };
 
     const getDashboardPath = () => {
-        if (!auth?.user) return '/';
-        switch (auth.user.userType) {
-            case 'admin':
-                return '/dashboard/admin';
-            case 'provider':
-                return '/dashboard/provider';
-            case 'user':
-            default:
-                return '/dashboard/user';
-        }
+        if (!auth?.user) return '/dashboard/profile'; // المسار الافتراضي
+        // يمكن تعديل هذا ليوجه كل مستخدم لصفحته الرئيسية في الداش بورد
+        return '/dashboard/profile';
     };
 
     return (
@@ -32,9 +25,11 @@ const Navbar: React.FC = () => {
                     <span className="text-3xl text-purple-600 font-bold">TourPal</span>
                 </Link>
 
+                {/* روابط التنقل الرئيسية */}
                 <div className="hidden md:flex items-center gap-6">
                     <NavLink to="/" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Home</NavLink>
-                    <NavLink to="/search" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Search</NavLink>
+                    <NavLink to="/search" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Find a Car</NavLink>
+                    <NavLink to="/guides" className={({ isActive }) => isActive ? "text-purple-600 font-bold" : "text-gray-600 hover:text-purple-600"}>Find a Guide</NavLink> {/* الرابط الجديد */}
                 </div>
 
                 <div className="hidden md:flex items-center gap-4">
@@ -64,4 +59,3 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
-

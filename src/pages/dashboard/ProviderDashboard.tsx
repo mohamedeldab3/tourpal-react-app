@@ -1,56 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { getProviderCars, addCar, deleteCar } from '../../api/carService'; // Mock API functions
+import React, { useState, useEffect, useCallback } from 'react';
+import { getProviderCars, addCar, deleteCar } from '../../api/carService';
+import type { Car } from '../../api/carService';
+import type { CarFormData } from '../../components/dashboard/CarForm'; // Import form data type
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
-import Input from '../../components/ui/Input';
-
-// Define types for the data
-interface Car {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  pricePerDay: number;
-  status: string;
-}
+import CarForm from '../../components/dashboard/CarForm'; // Import the new form
 
 const ProviderDashboard: React.FC = () => {
     const [cars, setCars] = useState<Car[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newCar, setNewCar] = useState({ brand: '', model: '', year: 2024, pricePerDay: 100 });
 
-    useEffect(() => {
-        const fetchCars = async () => {
-            setIsLoading(true);
-            const response = await getProviderCars(); // API call
+    const fetchCars = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const response = await getProviderCars();
             setCars(response);
+        } catch (error) {
+            console.error("Failed to fetch provider cars:", error);
+        } finally {
             setIsLoading(false);
-        };
-        fetchCars();
+        }
     }, []);
 
-    const handleAddCar = async (e: React.FormEvent) => {
-        e.preventDefault();
-        const addedCar = await addCar(newCar);
-        setCars([...cars, addedCar]);
-        setIsModalOpen(false);
-        alert('Vehicle added successfully!');
+    useEffect(() => {
+        fetchCars();
+    }, [fetchCars]);
+
+    const handleAddCar = async (formData: CarFormData) => {
+        setIsSubmitting(true);
+        try {
+            await addCar(formData);
+            setIsModalOpen(false);
+            alert('Vehicle added successfully!');
+            fetchCars(); // Refresh the list
+        } catch (error) {
+            console.error("Failed to add car:", error);
+            alert('Failed to add vehicle. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     
     const handleDeleteCar = async (carId: string) => {
         if (window.confirm('Are you sure you want to delete this vehicle?')) {
-            await deleteCar(carId);
-            setCars(cars.filter(car => car.id !== carId));
-            alert('Vehicle deleted successfully!');
+            try {
+                await deleteCar(carId);
+                setCars(cars.filter(car => car.id !== carId));
+                alert('Vehicle deleted successfully!');
+            } catch (error) {
+                console.error("Failed to delete car:", error);
+                alert('Failed to delete vehicle. Please try again.');
+            }
         }
     };
-
 
   return (
     <div className="p-8">
         <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Provider Dashboard</h1>
+            <h1 className="text-3xl font-bold">My Vehicles</h1>
             <Button onClick={() => setIsModalOpen(true)}>Add New Vehicle</Button>
         </div>
         
@@ -60,6 +69,7 @@ const ProviderDashboard: React.FC = () => {
             <div className="bg-white shadow overflow-x-auto sm:rounded-lg">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
+                        {/* Table headers remain the same */}
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vehicle</th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Year</th>
@@ -79,7 +89,8 @@ const ProviderDashboard: React.FC = () => {
                                         {car.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                                    <Button variant="secondary" size="sm">Edit</Button>
                                     <Button variant="danger" size="sm" onClick={() => handleDeleteCar(car.id)}>Delete</Button>
                                 </td>
                             </tr>
@@ -92,18 +103,7 @@ const ProviderDashboard: React.FC = () => {
         )}
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add a New Vehicle">
-            <form onSubmit={handleAddCar}>
-                <div className="space-y-4">
-                    <Input label="Brand" value={newCar.brand} onChange={(e) => setNewCar({...newCar, brand: e.target.value})} required />
-                    <Input label="Model" value={newCar.model} onChange={(e) => setNewCar({...newCar, model: e.target.value})} required />
-                    <Input label="Year" type="number" value={newCar.year} onChange={(e) => setNewCar({...newCar, year: parseInt(e.target.value)})} required />
-                    <Input label="Price per Day ($)" type="number" value={newCar.pricePerDay} onChange={(e) => setNewCar({...newCar, pricePerDay: parseFloat(e.target.value)})} required />
-                </div>
-                <div className="mt-6 flex justify-end space-x-4">
-                    <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                    <Button type="submit">Add Vehicle</Button>
-                </div>
-            </form>
+            <CarForm onSubmit={handleAddCar} isLoading={isSubmitting} />
         </Modal>
     </div>
   );

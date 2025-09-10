@@ -1,21 +1,23 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import Button from '../ui/Button';
-
+// ... imports ...
 const navLinks = {
     user: [
-        { path: '/dashboard', label: 'My Bookings', icon: 'receipt_long' },
+        { path: '/dashboard/user', label: 'My Bookings', icon: 'receipt_long' },
+        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },
+        { path: '/dashboard/create-ad', label: 'Create Ad', icon: 'post_add' }, // رابط جديد
     ],
     provider: [
-        { path: '/provider-dashboard', label: 'Overview', icon: 'dashboard' },
+        { path: '/dashboard/provider', label: 'My Vehicles', icon: 'directions_car' },
+        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },
+        { path: '/dashboard/create-ad', label: 'Create Ad', icon: 'post_add' }, // رابط جديد
     ],
     admin: [
-        { path: '/admin-dashboard', label: 'Overview', icon: 'dashboard' },
+        { path: '/dashboard/admin', label: 'Management', icon: 'shield_person' },
+        { path: '/dashboard/profile', label: 'My Profile', icon: 'person' },
     ],
 }
 
 const Sidebar: React.FC = () => {
+    // ... existing code ...
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     
@@ -25,15 +27,13 @@ const Sidebar: React.FC = () => {
     };
 
     const userRole = user?.userType || 'user';
-    const roleNavLinks = navLinks[userRole] || [];
+    // Ensure that roleNavLinks is an array even if userRole does not match
+    const roleNavLinks = navLinks[userRole as keyof typeof navLinks] || [];
 
     return (
         <aside className="w-64 bg-white p-4 flex flex-col justify-between border-r">
             <div>
-                <div className="mb-8 p-2">
-                    <h1 className="text-2xl font-bold text-purple-700">TourPal</h1>
-                    {user && <p className="text-gray-600">Welcome, {user.fullName}</p>}
-                </div>
+                {/* ... existing header ... */}
                 <nav className="flex flex-col gap-2">
                     {roleNavLinks.map(link => (
                         <NavLink key={link.path} to={link.path} className={({ isActive }) =>
@@ -47,14 +47,9 @@ const Sidebar: React.FC = () => {
                     ))}
                 </nav>
             </div>
-            <div className="p-2">
-                <Button variant="secondary" onClick={handleLogout} className="w-full">
-                    Log Out
-                </Button>
-            </div>
+            {/* ... existing logout button ... */}
         </aside>
     );
 };
 
 export default Sidebar;
-

@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
-// import { getUserBookings } from '../../api/bookingService'; // This would be the real API call
+import { getUserBookings } from '../../api/bookingService'; // استدعاء الدالة الحقيقية
+import type { Booking } from '../../api/bookingService'; // استيراد النوع
 import Button from '../../components/ui/Button';
 
-// Mock API function for demonstration until the backend is ready
-const getMockUserBookings = async () => {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return [
-        { id: 'booking1', carName: 'Toyota Land Cruiser', provider: 'Desert Adventures', date: '2025-11-15', status: 'Upcoming' },
-        { id: 'booking2', carName: 'H1 Mini Bus', provider: 'Family Trips Co.', date: '2025-12-01', status: 'Upcoming' },
-        { id: 'booking3', carName: 'Toyota Camry', provider: 'City Car Rentals', date: '2025-08-20', status: 'Completed' },
-        { id: 'booking4', carName: 'Luxury Sedan', provider: 'VIP Transports', date: '2025-06-05', status: 'Completed' },
-        { id: 'booking5', carName: 'Ford Explorer', provider: 'Mountain Tours', date: '2025-07-10', status: 'Cancelled' },
-    ];
-};
-
-
-// Define a type for the booking data structure for type safety
-interface Booking {
-  id: string;
-  carName: string;
-  provider: string;
-  date: string;
-  status: 'Upcoming' | 'Completed' | 'Cancelled';
-}
+// تم حذف الدالة الوهمية والنوع المحلي
 
 const UserDashboard: React.FC = () => {
     const [allBookings, setAllBookings] = useState<Booking[]>([]);
@@ -35,9 +15,15 @@ const UserDashboard: React.FC = () => {
     useEffect(() => {
         const fetchBookings = async () => {
             setIsLoading(true);
-            const response = await getMockUserBookings();
-            setAllBookings(response);
-            setIsLoading(false);
+            try {
+                const response = await getUserBookings();
+                setAllBookings(response);
+            } catch (error) {
+                console.error("Failed to fetch user bookings:", error);
+                // Handle error state in UI
+            } finally {
+                setIsLoading(false);
+            }
         };
         fetchBookings();
     }, []);
@@ -110,4 +96,3 @@ const UserDashboard: React.FC = () => {
 };
 
 export default UserDashboard;
-

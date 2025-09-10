@@ -1,32 +1,49 @@
-// This is a mock service. In a real application, it would use the apiClient to make network requests.
+import apiClient from './apiClient';
 
-export const login = async (credentials: any) => {
-    console.log('Mock login request with:', credentials);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+// تعريف أنواع البيانات للمستخدم بناءً على ما هو موجود في AuthContext
+interface User {
+  id: string;
+  fullName: string;
+  email: string;
+  userType: 'user' | 'provider' | 'admin';
+}
 
-    if (!credentials.email) {
-        throw new Error('Login failed');
-    }
+// تعريف أنواع البيانات للمدخلات والمخرجات
+interface LoginPayload {
+  email: string;
+  password: string;
+}
 
-    const userType = credentials.email.includes('admin') ? 'admin'
-                   : credentials.email.includes('provider') ? 'provider'
-                   : 'user';
+interface LoginResponse {
+  user: User;
+  token: string;
+}
 
-    return {
-        user: {
-            id: 'mock-user-id',
-            fullName: 'Mock User',
-            email: credentials.email,
-            userType: userType,
-        },
-        token: 'mock-jwt-token',
-    };
+interface RegisterPayload {
+  fullName: string;
+  email: string;
+  password: string;
+  userType: 'user' | 'provider';
+}
+
+/**
+ * إرسال طلب تسجيل الدخول إلى الـ API.
+ * @param credentials بيانات الدخول (الإيميل وكلمة المرور).
+ * @returns Promise يحتوي على بيانات المستخدم والـ token.
+ */
+export const login = async (credentials: LoginPayload): Promise<LoginResponse> => {
+  // لاحظ أننا نستخدم apiClient بدلاً من axios مباشرة
+  // ولا نحتاج لكتابة الرابط الكامل، فقط الـ endpoint
+  const { data } = await apiClient.post('/Account/login', credentials);
+  return data;
 };
 
-export const register = async (userData: any) => {
-    console.log('Mock register request with:', userData);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // In a real app, this would return a success message or user data
-    return { success: true, message: 'Registration successful. Please wait for admin approval.' };
+/**
+ * إرسال طلب تسجيل حساب جديد إلى الـ API.
+ * @param userData بيانات المستخدم الجديد.
+ * @returns Promise يحتوي على استجابة الـ API.
+ */
+export const register = async (userData: RegisterPayload) => {
+  const { data } = await apiClient.post('/Account/register', userData);
+  return data;
 };
-

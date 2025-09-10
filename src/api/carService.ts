@@ -1,59 +1,85 @@
-// src/api/carService.ts
+import apiClient from './apiClient';
 
-// This is a mock database to simulate real-world data.
-let mockCars = [
-    { id: 'car1', brand: 'Toyota', model: 'Land Cruiser', year: 2023, pricePerDay: 150, status: 'Available', imageUrl: 'https://images.unsplash.com/photo-1617083299395-4227835b3c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
-    { id: 'car2', brand: 'Ford', model: 'Explorer', year: 2022, pricePerDay: 120, status: 'Booked', imageUrl: 'https://images.unsplash.com/photo-1533106418989-88406e768d1a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
-    { id: 'car3', brand: 'Hyundai', model: 'H1', year: 2024, pricePerDay: 130, status: 'Available', imageUrl: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
-];
+// Define the types that will be used across the application
+export interface CarImage {
+    id: string;
+    imageUrl: string;
+    isPrimary: boolean;
+}
 
-// --- Mock API Functions ---
+export interface Car {
+    id: string;
+    brand: string;
+    model: string;
+    year: number;
+    pricePerDay: number;
+    description: string;
+    carImages?: CarImage[];
+    features?: string[];
+    // Add other properties from the API as needed
+}
+
+export interface CarListItem {
+    id: string;
+    brand: string;
+    model: string;
+    year: number;
+    pricePerDay: number;
+    carImages?: CarImage[];
+}
+
+export interface NewCarData {
+    brand: string;
+    model: string;
+    year: number;
+    pricePerDay: number;
+    cityId: string;
+    carTypeId: string;
+    capacity: number;
+    plateNumber: string;
+    description: string;
+    featureIds: number[];
+}
+
+
+// ✅ FIX: Added 'export' before each function to make them available for import.
 
 /**
- * Fetches all cars for the public search page.
+ * Fetches a list of cars for public view (like the search page).
  */
-export const getCarsList = async () => {
-    console.log('API Call: Fetching all cars for search page...');
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return mockCars.filter(car => car.status === 'Available');
+export const getCarsList = async (): Promise<CarListItem[]> => {
+    const response = await apiClient.get('/api/TourismCompany/cars-list');
+    return response.data.data; // Assuming the API returns data in a nested structure
 };
 
-
 /**
- * Fetches cars for a specific provider's dashboard.
+ * Fetches detailed information for a single car.
  */
-export const getProviderCars = async () => {
-    console.log('API Call: Fetching provider cars...');
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return [...mockCars];
+export const getCarDetails = async (id: string): Promise<Car> => {
+    const response = await apiClient.get(`/api/TourismCompany/cars/${id}`);
+    return response.data;
 };
 
 /**
- * Simulates adding a new car.
+ * Fetches the list of cars belonging to the currently logged-in provider.
  */
-export const addCar = async (newCarData: { brand: string; model: string; year: number; pricePerDay: number }) => {
-    console.log('API Call: Adding a new car...', newCarData);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newCar = {
-        id: `car${Math.random()}`, // Generate a random ID
-        ...newCarData,
-        status: 'Available',
-        imageUrl: 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' // Default image
-    };
-
-    mockCars.push(newCar);
-    return newCar;
+export const getProviderCars = async (): Promise<Car[]> => {
+    const response = await apiClient.get('/api/TransProvider/cars');
+    return response.data;
 };
 
 /**
- * Simulates deleting a car by its ID.
+ * Adds a new car for a provider.
  */
-export const deleteCar = async (carId: string) => {
-    console.log(`API Call: Deleting car with ID ${carId}...`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    mockCars = mockCars.filter(car => car.id !== carId);
-    return { success: true };
+export const addCar = async (carData: NewCarData): Promise<Car> => {
+    const response = await apiClient.post('/api/TransProvider/cars', carData);
+    return response.data;
+};
+
+/**
+ * Deletes a car by its ID.
+ */
+export const deleteCar = async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/TransProvider/cars/${id}`);
 };
 
