@@ -12,6 +12,7 @@ interface User {
 interface LoginPayload {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 interface LoginResponse {
@@ -41,10 +42,49 @@ interface RegisterPayload {
 export const login = async (
   credentials: LoginPayload
 ): Promise<LoginResponse> => {
-  // لاحظ أننا نستخدم apiClient بدلاً من axios مباشرة
-  // ولا نحتاج لكتابة الرابط الكامل، فقط الـ endpoint
-  const { data } = await apiClient.post("/Account/login", credentials);
-  return data;
+  try {
+    console.log('Login Request:', {
+      email: credentials.email,
+      rememberMe: credentials.rememberMe
+    });
+
+    const { data } = await apiClient.post("/Account/login", {
+      email: credentials.email,
+      password: credentials.password,
+      rememberMe: credentials.rememberMe
+    });
+
+    console.log('Raw API Response:', data);
+
+    // Check if the response indicates a failed login
+    if (!data.success && data.message) {
+      throw new Error(data.message);
+    }
+
+    // Check if we have the necessary data
+    if (!data.token || !data.user) {
+      throw new Error('Invalid response format from server');
+    }
+
+    const response: LoginResponse = {
+      token: data.token,
+      user: {
+        id: data.user.id || data.user.userId,
+        fullName: data.user.fullName || data.user.name,
+        email: data.user.email,
+        userType: (data.user.userType || 'user').toLowerCase() as "user" | "provider" | "admin"
+      }
+    };
+
+    console.log('Transformed Response:', response);
+    return response;
+  } catch (error: any) {
+    console.error('Login Error:', error.response?.data || error);
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message);
+    }
+    throw error;
+  }
 };
 
 /**

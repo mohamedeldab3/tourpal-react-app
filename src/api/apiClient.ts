@@ -48,10 +48,8 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     // في حال وجود خطأ في الاستجابة
-    if (error.response && error.response.status === 401) {
-      // إذا كان الخطأ 401، فهذا يعني أن المستخدم غير مصرح له بالوصول
-      // (الـ Token منتهي الصلاحية أو غير صحيح)
-      // قم بحذف بيانات المستخدم من localStorage
+    if (error.response && error.response.status === 401 && error.config.url !== "/Account/login") {
+      // Only clear auth state for 401s that are NOT from the login endpoint
       localStorage.removeItem("tourpal_user");
       localStorage.removeItem("tourpal_token");
 
