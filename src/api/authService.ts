@@ -1,11 +1,11 @@
-import apiClient from './apiClient';
+import apiClient from "./apiClient";
 
 // تعريف أنواع البيانات للمستخدم بناءً على ما هو موجود في AuthContext
 interface User {
   id: string;
   fullName: string;
   email: string;
-  userType: 'user' | 'provider' | 'admin';
+  userType: "user" | "provider" | "admin";
 }
 
 // تعريف أنواع البيانات للمدخلات والمخرجات
@@ -20,10 +20,17 @@ interface LoginResponse {
 }
 
 interface RegisterPayload {
-  fullName: string;
-  email: string;
-  password: string;
-  userType: 'user' | 'provider';
+  FullName: string;
+  Email: string;
+  Password: string;
+  UserType: number;
+  Phone: string;
+  CityId: string;
+  CompanyName?: string;
+  EmailCodeNo?: string;
+  IsEmailConfirmed?: boolean;
+  IsCompany?: boolean;
+  Address?: string;
 }
 
 /**
@@ -31,10 +38,12 @@ interface RegisterPayload {
  * @param credentials بيانات الدخول (الإيميل وكلمة المرور).
  * @returns Promise يحتوي على بيانات المستخدم والـ token.
  */
-export const login = async (credentials: LoginPayload): Promise<LoginResponse> => {
+export const login = async (
+  credentials: LoginPayload
+): Promise<LoginResponse> => {
   // لاحظ أننا نستخدم apiClient بدلاً من axios مباشرة
   // ولا نحتاج لكتابة الرابط الكامل، فقط الـ endpoint
-  const { data } = await apiClient.post('/Account/login', credentials);
+  const { data } = await apiClient.post("/Account/login", credentials);
   return data;
 };
 
@@ -44,6 +53,19 @@ export const login = async (credentials: LoginPayload): Promise<LoginResponse> =
  * @returns Promise يحتوي على استجابة الـ API.
  */
 export const register = async (userData: RegisterPayload) => {
-  const { data } = await apiClient.post('/Account/register', userData);
+  const formData = new FormData();
+
+  // Append all fields to FormData
+  Object.entries(userData).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, value.toString());
+    }
+  });
+
+  const { data } = await apiClient.post("/Account/register", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return data;
 };
