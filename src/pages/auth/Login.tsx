@@ -30,8 +30,10 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+    console.log("1. handleSubmit called");
     e.preventDefault();
+    console.log("2. e.preventDefault() executed");
     setIsLoading(true);
     setError(null);
     setEmailNotConfirmed(false);
@@ -43,28 +45,34 @@ const Login: React.FC = () => {
     };
 
     try {
+      console.log("3. Attempting apiLogin...");
       const response = await apiLogin({
         email,
         password,
         rememberMe,
       });
+      console.log("4. apiLogin successful:", response);
 
       auth.login(response.user, response.token);
 
       const userType = response.user.userType || "user";
       const dashboardPath = dashboardPaths[userType] || dashboardPaths.user;
 
+      console.log("5. Navigating to:", dashboardPath);
       navigate(dashboardPath, { replace: true });
     } catch (err: any) {
+      console.log("6. apiLogin failed:", err);
       const errorMessage = err.response?.data?.message || err.message || "Invalid email or password.";
       if (errorMessage.includes('Email is not confirmed')) {
         setError('Your email is not confirmed. Please check your inbox.');
         setEmailNotConfirmed(true);
       } else {
         setError(errorMessage);
+        setPassword(''); // Clear password on failed login
       }
       console.error("Login Error:", err);
     } finally {
+      console.log("7. handleSubmit finished");
       setIsLoading(false);
     }
   };
@@ -170,3 +178,5 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
+  

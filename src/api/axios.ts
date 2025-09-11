@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'https://api.tourpal.com/api', // Replace with your actual API base URL
+    baseURL: 'https://e3lanootopia.com/api', // Corrected API base URL based on console logs
     headers: {
         'Content-Type': 'application/json',
     },

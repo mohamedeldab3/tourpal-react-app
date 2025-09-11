@@ -10,7 +10,7 @@ const MainLayout: React.FC = () => {
       <main className="flex-grow">
         <Outlet /> {/* This will render the matched child route */}
       </main>
-      <Footer />
+      
     </div>
   );
 };
