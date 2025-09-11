@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../../api/authService';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
+
 
 const ResetPassword = () => {
   const [token, setToken] = useState('');
@@ -57,9 +57,7 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 z-0">
-        <LiquidEther colors={['#5227FF', '#FF9FFC', '#B19EEF']} />
-      </div>
+      
       <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 z-10">
         <h2 className="text-3xl font-bold text-gray-900 text-center">Reset Password</h2>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
