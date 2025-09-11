@@ -34,6 +34,8 @@ export interface RequiredDocument {
     documentName: string;
     isUploaded: boolean;
     isVerified: boolean;
+    documentType: number; // Added documentType to be used when uploading
+    id: number; // Added id to be used when deleting
 }
 
 export interface UserProfile {
@@ -88,10 +90,11 @@ export const getProfile = async (): Promise<UserProfile> => {
 };
 
 /**
- * Checks the status of required documents for the logged-in user.
+ * Checks the status of required documents for a user.
  */
-export const checkUserDocuments = async (): Promise<RequiredDocument[]> => {
-    const response = await apiClient.get('/api/Account/check-user-documents');
+export const checkUserDocuments = async (userId?: string): Promise<RequiredDocument[]> => {
+    const url = userId ? `/api/Account/check-user-documents?userId=${userId}` : '/api/Account/check-user-documents';
+    const response = await apiClient.get(url);
     return response.data;
 };
 
@@ -106,3 +109,17 @@ export const uploadDocument = async (formData: FormData): Promise<void> => {
     });
 };
 
+/**
+ * Deletes a document.
+ */
+export const deleteDocument = async (documentId: number): Promise<void> => {
+    await apiClient.delete(`/api/Account/delete-document/${documentId}`);
+};
+
+/**
+ * Verifies a user document (for admins).
+ */
+export const verifyUserDocument = async (payload: { documentId: number; isApproved: boolean; notes: string }): Promise<any> => {
+    const { data } = await apiClient.put('/api/Account/verify-user-document', payload);
+    return data;
+};

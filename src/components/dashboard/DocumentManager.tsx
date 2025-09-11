@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
-// FIX: Corrected the function name from getRequiredDocuments to checkUserDocuments
-import { checkUserDocuments, uploadDocument, RequiredDocument } from '../../api/userService';
-import { getDocumentsTypes, BasicListDto } from '../../api/listsService';
+import { useAuth } from '../../context/AuthContext';
+import { checkUserDocuments, uploadDocument, deleteDocument, RequiredDocument } from '../../api/userService';
 import Button from '../ui/Button';
+import Input from '../ui/Input';
 
 const DocumentManager: React.FC = () => {
     const [requiredDocs, setRequiredDocs] = useState<RequiredDocument[]>([]);
-    const [docTypes, setDocTypes] = useState<BasicListDto[]>([]);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [selectedDocTypeId, setSelectedDocTypeId] = useState<string>('');
+    const [files, setFiles] = useState<{ [key: string]: File | null }>({});
+    const [notes, setNotes] = useState<{ [key: string]: string }>({});
     const [isLoading, setIsLoading] = useState(true);
-    const [isUploading, setIsUploading] = useState(false);
+    const [isUploading, setIsUploading] = useState<string | null>(null); // Track by doc name
     const [error, setError] = useState<string | null>(null);
+    const { user } = useAuth();
 
     const fetchData = async () => {
         setIsLoading(true);
         setError(null);
         try {
-            // FIX: Use the correct function name here as well
-            const [reqDocs, types] = await Promise.all([checkUserDocuments(), getDocumentsTypes()]);
+            const reqDocs = await checkUserDocuments();
             setRequiredDocs(reqDocs);
-            setDocTypes(types);
-            if (types.length > 0) {
-                setSelectedDocTypeId(types[0].id.toString());
-            }
         } catch (err) {
             console.error("Failed to fetch document data:", err);
             setError("Could not load document information. Please try again later.");
@@ -36,37 +31,58 @@ const DocumentManager: React.FC = () => {
         fetchData();
     }, []);
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
-            setSelectedFile(event.target.files[0]);
+            setFiles(prev => ({ ...prev, [docName]: event.target.files[0] }));
         }
     };
 
-    const handleUpload = async (event: React.FormEvent) => {
-        event.preventDefault();
-        if (!selectedFile || !selectedDocTypeId) {
-            alert('Please select a document type and a file.');
+    const handleNotesChange = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+        setNotes(prev => ({ ...prev, [docName]: event.target.value }));
+    };
+
+    const handleUpload = async (doc: RequiredDocument) => {
+        const file = files[doc.documentName];
+        if (!file || !user?.email) {
+            alert('Please select a file and ensure you are logged in.');
             return;
         }
 
-        setIsUploading(true);
+        setIsUploading(doc.documentName);
         setError(null);
 
         const formData = new FormData();
-        formData.append('documentFile', selectedFile);
-        formData.append('documentTypeId', selectedDocTypeId);
+        formData.append('File', file);
+        formData.append('DocumentType', doc.documentType.toString());
+        formData.append('Email', user.email);
+        formData.append('Notes', notes[doc.documentName] || '');
 
         try {
             await uploadDocument(formData);
-            alert('Document uploaded successfully! It will be reviewed by the admin.');
-            // Refresh the list of documents after upload
+            alert('Document uploaded successfully!');
             await fetchData();
-            setSelectedFile(null); // Clear the file input
+            setFiles(prev => ({ ...prev, [doc.documentName]: null }));
+            setNotes(prev => ({ ...prev, [doc.documentName]: '' }));
         } catch (err) {
             console.error("Failed to upload document:", err);
-            setError('File upload failed. Please ensure the file is a valid format and try again.');
+            setError(`Failed to upload ${doc.documentName}. Please try again.`);
         } finally {
-            setIsUploading(false);
+            setIsUploading(null);
+        }
+    };
+
+    const handleDelete = async (documentId: number) => {
+        if (!window.confirm('Are you sure you want to delete this document?')) {
+            return;
+        }
+
+        try {
+            await deleteDocument(documentId);
+            alert('Document deleted successfully.');
+            await fetchData();
+        } catch (err) {
+            console.error("Failed to delete document:", err);
+            setError('Failed to delete document. Please try again.');
         }
     };
 
@@ -76,67 +92,63 @@ const DocumentManager: React.FC = () => {
 
     return (
         <div className="bg-white p-6 rounded-lg shadow mt-6">
-            <h3 className="text-xl font-bold mb-4">Required Documents</h3>
+            <h3 className="text-xl font-bold mb-4">Your Documents</h3>
             {error && <p className="text-red-500 bg-red-100 p-3 rounded-md mb-4">{error}</p>}
             
-            {/* List of required documents */}
-            <ul className="space-y-3 mb-6">
+            <div className="space-y-6">
                 {requiredDocs.map((doc) => (
-                    <li key={doc.documentName} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                        <span className="font-medium text-gray-800">{doc.documentName}</span>
-                        {doc.isUploaded ? (
-                             <span className={`px-3 py-1 text-xs font-semibold rounded-full ${doc.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                                {doc.isVerified ? 'Verified' : 'Pending Review'}
+                    <div key={doc.documentName} className="p-4 border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-800">{doc.documentName}</span>
+                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${doc.isUploaded ? (doc.isVerified ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800') : 'bg-red-100 text-red-800'}`}>
+                                {doc.isUploaded ? (doc.isVerified ? 'Verified' : 'Pending Review') : 'Not Uploaded'}
                             </span>
-                        ) : (
-                            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                Not Uploaded
-                            </span>
+                        </div>
+
+                        {doc.isUploaded && (
+                            <div className="text-right mt-2">
+                                <Button onClick={() => handleDelete(doc.id)} variant="danger" size="sm">
+                                    Delete
+                                </Button>
+                            </div>
                         )}
-                    </li>
+
+                        {!doc.isUploaded && (
+                            <div className="mt-4">
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label htmlFor={`file-${doc.documentName}`} className="sr-only">File</label>
+                                        <input
+                                            id={`file-${doc.documentName}`}
+                                            type="file"
+                                            onChange={(e) => handleFileChange(doc.documentName, e)}
+                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Input
+                                            id={`notes-${doc.documentName}`}
+                                            type="text"
+                                            placeholder="Notes (optional)"
+                                            value={notes[doc.documentName] || ''}
+                                            onChange={(e) => handleNotesChange(doc.documentName, e)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="text-right mt-2">
+                                    <Button 
+                                        onClick={() => handleUpload(doc)} 
+                                        disabled={isUploading === doc.documentName || !files[doc.documentName]}>
+                                        {isUploading === doc.documentName ? 'Uploading...' : 'Upload'}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 ))}
-            </ul>
-
-            {/* Upload Form */}
-            <form onSubmit={handleUpload}>
-                <h4 className="font-bold mb-2">Upload a New Document</h4>
-                <div className="grid sm:grid-cols-3 gap-4">
-                    <div className="sm:col-span-1">
-                        <label htmlFor="doc-type" className="block text-sm font-medium text-gray-700">Document Type</label>
-                        <select
-                            id="doc-type"
-                            value={selectedDocTypeId}
-                            onChange={(e) => setSelectedDocTypeId(e.target.value)}
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
-                            disabled={isUploading}
-                        >
-                            {docTypes.map(type => (
-                                <option key={type.id} value={type.id}>{type.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                         <label htmlFor="doc-file" className="block text-sm font-medium text-gray-700">File</label>
-                        <input
-                            id="doc-file"
-                            type="file"
-                            onChange={handleFileChange}
-                            className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                            disabled={isUploading}
-                        />
-                    </div>
-                </div>
-
-                <div className="mt-4 text-right">
-                    <Button type="submit" disabled={isUploading || !selectedFile}>
-                        {isUploading ? 'Uploading...' : 'Upload'}
-                    </Button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 };
 
 export default DocumentManager;
-

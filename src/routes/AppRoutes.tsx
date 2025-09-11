@@ -6,6 +6,11 @@ import Home from '../pages/home/Home';
 import Search from '../pages/search/Search';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+import RegisterStep2 from '../pages/auth/RegisterStep2';
+import ForgotPassword from '../pages/auth/ForgotPassword';
+import ResetPassword from '../pages/auth/ResetPassword';
+import ConfirmEmail from '../pages/auth/ConfirmEmail';
+import PleaseConfirm from '../pages/auth/PleaseConfirm';
 import CarDetail from '../pages/car/CarDetail';
 import UserDashboard from '../pages/dashboard/UserDashboard';
 import ProviderDashboard from '../pages/dashboard/ProviderDashboard';
@@ -31,6 +36,11 @@ const AppRoutes: React.FC = () => {
         <Route path="car/:id" element={<CarDetail />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="register-step2" element={<RegisterStep2 />} />
+        <Route path="forgot-password" element={<ForgotPassword />} />
+        <Route path="reset-password" element={<ResetPassword />} />
+        <Route path="confirm-email" element={<ConfirmEmail />} />
+        <Route path="please-confirm" element={<PleaseConfirm />} />
       </Route>
 
       {/* المسارات المحمية (داشبورد) */}

@@ -1,58 +1,87 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../../api/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import { getCities, getUserTypes } from "../../api/listsService";
+
+interface City {
+  id: number;
+  name: string;
+}
+
+interface UserType {
+  id: number;
+  name: string;
+}
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
     FullName: "",
     Email: "",
     Password: "",
-    UserType: 1, // 1 for user, 2 for provider
+    UserType: 1,
     Phone: "",
     CityId: "",
     CompanyName: "",
     Address: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [cities, setCities] = useState<City[]>([]);
+  const [userTypes, setUserTypes] = useState<UserType[]>([]);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Dynamically find UserType IDs
+  const carOwnerTypeId = userTypes.find(type => type.name === 'Car Owner')?.id;
+  const companyTypeIds = userTypes.filter(type => 
+    type.name === 'Tourism Transport Company' || type.name === 'Tourism Company'
+  ).map(type => type.id);
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        const citiesData = await getCities(1);
+        const userTypesData = await getUserTypes();
+        setCities(citiesData);
+        setUserTypes(userTypesData);
+        if (userTypesData.length > 0) {
+          setFormData(prev => ({ ...prev, UserType: userTypesData[0].id }));
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial data", error);
+      }
+    };
+    fetchInitialData();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+
+    if (name === "Password") {
+      const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
+      if (!passwordRegex.test(value)) {
+        setPasswordError("Password must contain only English letters, numbers, and symbols.");
+      } else {
+        setPasswordError(null);
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "UserType" || name === "CityId" ? parseInt(value, 10) : value,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrors([]);
-    try {
-      await register({
-        ...formData,
-        UserType: formData.UserType,
-        IsCompany: false,
-        IsEmailConfirmed: false,
-        EmailCodeNo: "",
-      });
-      alert("Registration successful! Your account is pending admin approval.");
-      navigate("/login");
-    } catch (err: any) {
-      if (err.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else {
-        setErrors(["Failed to register. Please try again."]);
-      }
-      console.error(err);
-    } finally {
-      setIsLoading(false);
+
+    if (passwordError) {
+      return;
     }
+    
+    // Navigate to step 2 with the form data
+    navigate('/register-step2', { state: { formData } });
   };
 
   return (
@@ -122,16 +151,33 @@ const Register: React.FC = () => {
               onChange={handleInputChange}
               required
             />
+            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
 
-            <Input
-              label="City ID"
-              id="city-id"
-              name="CityId"
-              type="text"
-              value={formData.CityId}
-              onChange={handleInputChange}
-              required
-            />
+            <div>
+              <label
+                htmlFor="city"
+                className="block text-sm font-medium text-gray-700"
+              >
+                City
+              </label>
+              <select
+                id="city"
+                name="CityId"
+                value={formData.CityId}
+                onChange={handleInputChange}
+                required
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
+              >
+                <option value="" disabled>
+                  Select a city
+                </option>
+                {cities.map((city) => (
+                  <option key={city.id} value={city.id}>
+                    {city.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div>
               <label
@@ -147,12 +193,15 @@ const Register: React.FC = () => {
                 onChange={handleInputChange}
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
               >
-                <option value={1}>Traveler</option>
-                <option value={2}>Service Provider</option>
+                {userTypes.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
               </select>
             </div>
 
-            {formData.UserType === 2 && (
+            {companyTypeIds.includes(formData.UserType) && (
               <>
                 <Input
                   label="Company Name"
@@ -173,18 +222,10 @@ const Register: React.FC = () => {
                 />
               </>
             )}
-            {errors.length > 0 && (
-              <div className="bg-red-50 p-4 rounded-md">
-                {errors.map((error, index) => (
-                  <p key={index} className="text-red-500 text-sm">
-                    {error}
-                  </p>
-                ))}
-              </div>
-            )}
+            
             <div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Sign Up"}
+              <Button type="submit" className="w-full" disabled={!!passwordError}>
+                Next: Upload Documents
               </Button>
             </div>
           </form>

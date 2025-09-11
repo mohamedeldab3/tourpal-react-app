@@ -49,7 +49,20 @@ export interface NewCarData {
  */
 export const getCarsList = async (): Promise<CarListItem[]> => {
     const response = await apiClient.get('/api/TourismCompany/cars-list');
-    return response.data.data; // Assuming the API returns data in a nested structure
+    
+    // Defensive check for the response structure
+    if (response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+    }
+    
+    // Handle cases where the data might be directly in the response
+    if (Array.isArray(response.data)) {
+        return response.data;
+    }
+
+    // If the structure is unexpected, log it and return an empty array to prevent crashing
+    console.error("Unexpected API response structure for getCarsList:", response.data);
+    return [];
 };
 
 /**
@@ -82,4 +95,3 @@ export const addCar = async (carData: NewCarData): Promise<Car> => {
 export const deleteCar = async (id: string): Promise<void> => {
     await apiClient.delete(`/api/TransProvider/cars/${id}`);
 };
-

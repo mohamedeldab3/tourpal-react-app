@@ -5,7 +5,7 @@ import axios from "axios";
  */
 const apiClient = axios.create({
   // جلب رابط الـ API الأساسي من ملف متغيرات البيئة
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: "https://e3lanootopia.com",
   headers: {
     "Content-Type": "application/json",
   },

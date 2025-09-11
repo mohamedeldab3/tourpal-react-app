@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext"; // Corrected: Import useAuth hook
-import { login as apiLogin } from "../../api/authService"; // Import the api function
+import { useAuth } from "../../context/AuthContext";
+import { login as apiLogin, sendEmailConfirmation } from "../../api/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 
@@ -11,15 +11,30 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const auth = useAuth(); // Corrected: Use the hook
+  const [emailNotConfirmed, setEmailNotConfirmed] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
+  const auth = useAuth();
   const navigate = useNavigate();
+
+  const handleResendConfirmation = async () => {
+    setIsLoading(true);
+    setResendMessage('');
+    try {
+      await sendEmailConfirmation(email);
+      setResendMessage('A new confirmation email has been sent.');
+    } catch (error) {
+      setResendMessage('Failed to resend email. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setEmailNotConfirmed(false);
 
-    // Define dashboard paths
     const dashboardPaths = {
       admin: "/dashboard/admin",
       provider: "/dashboard/provider",
@@ -27,35 +42,27 @@ const Login: React.FC = () => {
     };
 
     try {
-      // 1. Call the API
       const response = await apiLogin({
         email,
         password,
         rememberMe,
       });
 
-      console.log("Login Response in component:", response);
-
-      // 2. Store token and user data
       auth.login(response.user, response.token);
 
-      // Get the appropriate dashboard path
       const userType = response.user.userType || "user";
       const dashboardPath = dashboardPaths[userType] || dashboardPaths.user;
 
-      console.log("User type:", userType);
-      console.log("Redirecting to:", dashboardPath);
-
       navigate(dashboardPath, { replace: true });
     } catch (err: any) {
-      console.error("Login Error:", err); // Debug log
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.response?.data?.errors?.length > 0) {
-        setError(err.response.data.errors[0]); // Show first error message
+      const errorMessage = err.response?.data?.message || err.message || "Invalid email or password.";
+      if (errorMessage.includes('Email is not confirmed')) {
+        setError('Your email is not confirmed. Please check your inbox.');
+        setEmailNotConfirmed(true);
       } else {
-        setError(err.message || "Invalid email or password.");
+        setError(errorMessage);
       }
+      console.error("Login Error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -64,16 +71,14 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex">
-        {/* Image Section */}
         <div
           className="hidden md:block w-1/2 bg-cover bg-center rounded-l-xl"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1529539795054-3c162a4afc9a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
+              "url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
           }}
         ></div>
 
-        {/* Form Section */}
         <div className="w-full md:w-1/2 p-8 md:p-12">
           <h2 className="text-3xl font-bold text-gray-900 text-center">
             Welcome Back!
@@ -129,15 +134,24 @@ const Login: React.FC = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  to="/forgot-password"
                   className="font-medium text-purple-600 hover:text-purple-500"
                 >
                   Forgot your password?
-                </a>
+                </Link>
               </div>
             </div>
             {error && <p className="text-red-500 text-center">{error}</p>}
+
+            {emailNotConfirmed && (
+              <div className="text-center mt-4">
+                <Button onClick={handleResendConfirmation} disabled={isLoading} className="text-sm">
+                  {isLoading ? 'Sending...' : 'Resend Confirmation Email'}
+                </Button>
+                {resendMessage && <p className="text-sm text-gray-600 mt-2">{resendMessage}</p>}
+              </div>
+            )}
 
             <div>
               <Button type="submit" className="w-full" disabled={isLoading}>

@@ -48,7 +48,7 @@ export const login = async (
       rememberMe: credentials.rememberMe
     });
 
-    const { data } = await apiClient.post("/Account/login", {
+    const { data } = await apiClient.post("/api/Account/login", {
       email: credentials.email,
       password: credentials.password,
       rememberMe: credentials.rememberMe
@@ -102,10 +102,39 @@ export const register = async (userData: RegisterPayload) => {
     }
   });
 
-  const { data } = await apiClient.post("/Account/register", formData, {
+  const { data } = await apiClient.post("/api/Account/register", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+  return data;
+};
+
+export const forgotPassword = async (email: string) => {
+  const { data } = await apiClient.post("/api/Account/forgot-password", {
+    email,
+    baseLink: `${window.location.origin}/reset-password`,
+    language: 0,
+  });
+  return data;
+};
+
+export const resetPassword = async (payload: { email: string; token: string; newPassword: string }) => {
+  const { data } = await apiClient.post("/api/Account/reset-password", payload);
+  return data;
+};
+
+export const changePassword = async (payload: { currentPassword: string; newPassword: string }) => {
+    const { data } = await apiClient.post("/api/Account/change-password", payload);
+    return data;
+};
+
+export const sendEmailConfirmation = async (email: string) => {
+  const { data } = await apiClient.post(`/api/Account/send-email-confirmation?email=${email}&language=0`);
+  return data;
+};
+
+export const confirmEmail = async (email: string, code: string) => {
+  const { data } = await apiClient.get(`/api/Account/confirm-email?email=${email}&code=${code}`);
   return data;
 };
