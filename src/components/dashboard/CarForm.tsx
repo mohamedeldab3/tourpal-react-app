@@ -5,6 +5,13 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { toast } from "sonner"; // Import toast
 
+import React, { useState, useEffect } from 'react';
+// FIX: Corrected the function names to match the exports in the service files
+import { getCarTypesList, getCarFeatures, getCities, BasicListDto } from '../../api/listsService';
+import Input from '../ui/Input';
+import Button from '../ui/Button';
+import { toast } from "sonner"; // Import toast
+
 export interface CarFormData {
     brand: string;
     model: string;
@@ -114,16 +121,16 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
                 </div>
 
                 {/* Brand and Model */}
-                <Input id="brand" label="Brand" name="brand" value={formData.brand} onChange={handleChange} required />
-                <Input id="model" label="Model" name="model" value={formData.model} onChange={handleChange} required />
+                <Input label="Brand" name="brand" value={formData.brand} onChange={handleChange} required />
+                <Input label="Model" name="model" value={formData.model} onChange={handleChange} required />
 
                 {/* Year and Plate Number */}
-                 <Input id="year" label="Year" name="year" type="number" value={formData.year} onChange={handleChange} required />
-                <Input id="plateNumber" label="Plate Number" name="plateNumber" value={formData.plateNumber} onChange={handleChange} required />
+                 <Input label="Year" name="year" type="number" value={formData.year} onChange={handleChange} required />
+                <Input label="Plate Number" name="plateNumber" value={formData.plateNumber} onChange={handleChange} required />
 
                  {/* Capacity and Price */}
-                <Input id="capacity" label="Capacity (Seats)" name="capacity" type="number" value={formData.capacity} onChange={handleChange} required />
-                <Input id="pricePerDay" label="Price per Day ($)" name="pricePerDay" type="number" value={formData.pricePerDay} onChange={handleChange} required />
+                <Input label="Capacity (Seats)" name="capacity" type="number" value={formData.capacity} onChange={handleChange} required />
+                <Input label="Price per Day ($)" name="pricePerDay" type="number" value={formData.pricePerDay} onChange={handleChange} required />
             </div>
 
             {/* Description */}

@@ -35,7 +35,7 @@ const Register: React.FC = () => {
   const navigate = useNavigate();
 
   // Dynamically find UserType IDs
-  
+  const carOwnerTypeId = userTypes.find(type => type.name === 'Car Owner')?.id;
   const companyTypeIds = userTypes.filter(type => 
     type.name === 'Tourism Transport Company' || type.name === 'Tourism Company'
   ).map(type => type.id);

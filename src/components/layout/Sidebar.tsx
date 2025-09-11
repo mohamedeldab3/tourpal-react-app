@@ -1,7 +1,4 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-
+// ... imports ...
 const navLinks = {
     user: [
         { path: '/dashboard/user', label: 'My Bookings', icon: 'receipt_long' },
@@ -20,6 +17,7 @@ const navLinks = {
 }
 
 const Sidebar: React.FC = () => {
+    // ... existing code ...
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     
@@ -49,12 +47,7 @@ const Sidebar: React.FC = () => {
                     ))}
                 </nav>
             </div>
-            <div>
-                <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-600 hover:bg-gray-100 w-full">
-                    <span className="material-symbols-outlined">logout</span>
-                    <span>Logout</span>
-                </button>
-            </div>
+            {/* ... existing logout button ... */}
         </aside>
     );
 };
