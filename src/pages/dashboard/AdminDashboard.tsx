@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   getPendingApprovals, 
-  approveUser, 
-  suspendUser, 
   getUsersList, 
-  verifyUserDocument,
   PendingUser, 
   User, 
-  Document as UserDocument 
 } from '../../api/userService';
 import { register } from '../../api/authService'; // Import register function
-import { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from '../../api/bannerService';
+import { getPendingAdvertisements } from '../../api/bannerService';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
@@ -18,14 +14,11 @@ import { toast } from "sonner"; // Import toast
 
 const AdminDashboard: React.FC = () => {
     // State for user management
-    const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
+    const [, setPendingUsers] = useState<PendingUser[]>([]);
+    const [, setUsers] = useState<User[]>([]);
     const [isCreateAdminModalOpen, setIsCreateAdminModalOpen] = useState(false);
     const [newAdmin, setNewAdmin] = useState({ FullName: '', Email: '', Password: '' });
     const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
-
-    // State for advertisement management
-    // const [pendingAds, setPendingAds] = useState<AdvertisementDto[]>([]);
 
     // General state
     const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +27,6 @@ const AdminDashboard: React.FC = () => {
     // State for the documents modal
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
     const [selectedUserName, ] = useState('');
-    // const [rejectionNotes, setRejectionNotes] = useState<{ [key: string]: string }>({});
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -46,8 +38,7 @@ const AdminDashboard: React.FC = () => {
                 const response = await getUsersList();
                 setUsers(response || []);
             } else if (activeTab === 'ads') {
-                const response = await getPendingAdvertisements();
-                // setPendingAds(response || []);
+                await getPendingAdvertisements();
             }
         } catch (error) {
             console.error("Failed to fetch data:", error);

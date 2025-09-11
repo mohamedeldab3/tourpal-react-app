@@ -97,7 +97,7 @@ const AdminAdvertisements: React.FC = () => {
                 </div>
             )}
 
-            <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Advertisement">
+            <Modal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Advertisement">
                 <div className="p-4">
                     <p className="mb-4">Please provide a reason for rejecting this advertisement:</p>
                     <textarea
