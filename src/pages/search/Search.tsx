@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getCarsList } from '../../api/carService';
-import type { Car } from '../../api/carService'; // Import the type
+import type { CarListItem } from '../../api/carService'; // Import the type
 
 const Search: React.FC = () => {
-    const [cars, setCars] = useState<Car[]>([]);
+    const [cars, setCars] = useState<CarListItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

@@ -25,17 +25,16 @@ const AdminDashboard: React.FC = () => {
     const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
 
     // State for advertisement management
-    const [pendingAds, setPendingAds] = useState<AdvertisementDto[]>([]);
+    // const [pendingAds, setPendingAds] = useState<AdvertisementDto[]>([]);
 
     // General state
     const [isLoading, setIsLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'approvals' | 'users' | 'ads'>('approvals');
+    const [activeTab, ] = useState<'approvals' | 'users' | 'ads'>('approvals');
     
     // State for the documents modal
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
-    const [selectedUserDocs, setSelectedUserDocs] = useState<UserDocument[]>([]);
-    const [selectedUserName, setSelectedUserName] = useState('');
-    const [rejectionNotes, setRejectionNotes] = useState<{ [key: string]: string }>({});
+    const [selectedUserName, ] = useState('');
+    // const [rejectionNotes, setRejectionNotes] = useState<{ [key: string]: string }>({});
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -48,7 +47,7 @@ const AdminDashboard: React.FC = () => {
                 setUsers(response || []);
             } else if (activeTab === 'ads') {
                 const response = await getPendingAdvertisements();
-                setPendingAds(response || []);
+                // setPendingAds(response || []);
             }
         } catch (error) {
             console.error("Failed to fetch data:", error);
@@ -126,7 +125,7 @@ const AdminDashboard: React.FC = () => {
             </Modal>
 
             <Modal isOpen={isDocModalOpen} onClose={() => setIsDocModalOpen(false)} title={`Documents for ${selectedUserName}`}>
-                {/* Document verification modal as before */}
+                <></>
             </Modal>
         </div>
     );

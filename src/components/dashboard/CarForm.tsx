@@ -5,14 +5,34 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { toast } from "sonner"; // Import toast
 
+import React, { useState, useEffect } from 'react';
+// FIX: Corrected the function names to match the exports in the service files
+import { getCarTypesList, getCarFeatures, getCities, BasicListDto } from '../../api/listsService';
+import Input from '../ui/Input';
+import Button from '../ui/Button';
+import { toast } from "sonner"; // Import toast
+
+export interface CarFormData {
+    brand: string;
+    model: string;
+    year: number;
+    pricePerDay: number;
+    cityId: string;
+    carTypeId: string;
+    capacity: number;
+    plateNumber: string;
+    description: string;
+    featureIds: string[];
+}
+
 interface CarFormProps {
-    onSubmit: (data: any) => void;
-    initialData?: any;
+    onSubmit: (data: CarFormData) => void;
+    initialData?: Partial<CarFormData>;
     isSubmitting: boolean;
 }
 
 const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitting }) => {
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CarFormData>({
         carTypeId: initialData.carTypeId || '',
         brand: initialData.brand || '',
         model: initialData.model || '',

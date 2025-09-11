@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getProviderCars, addCar, deleteCar } from '../../api/carService';
 import type { Car } from '../../api/carService';
-import type { CarFormData } from '../../components/dashboard/CarForm'; // Import form data type
+import { CarFormData } from '../../components/dashboard/CarForm'; // Import form data type
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import CarForm from '../../components/dashboard/CarForm'; // Import the new form
@@ -32,7 +32,11 @@ const ProviderDashboard: React.FC = () => {
     const handleAddCar = async (formData: CarFormData) => {
         setIsSubmitting(true);
         try {
-            await addCar(formData);
+            const dataForApi = {
+                ...formData,
+                featureIds: formData.featureIds.map(id => parseInt(id, 10))
+            };
+            await addCar(dataForApi);
             setIsModalOpen(false);
             toast.success('Vehicle added successfully!'); // Use toast.success
             fetchCars(); // Refresh the list
@@ -104,7 +108,7 @@ const ProviderDashboard: React.FC = () => {
         )}
 
         <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add a New Vehicle">
-            <CarForm onSubmit={handleAddCar} isLoading={isSubmitting} />
+            <CarForm onSubmit={handleAddCar} isSubmitting={isSubmitting} />
         </Modal>
     </div>
   );

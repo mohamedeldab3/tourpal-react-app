@@ -14,6 +14,7 @@ export interface Car {
     year: number;
     pricePerDay: number;
     description: string;
+    status?: string; // Added status as it is used in the dashboard
     carImages?: CarImage[];
     features?: string[];
     // Add other properties from the API as needed
