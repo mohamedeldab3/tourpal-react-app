@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { sendEmailConfirmation } from '../../api/authService';
 import Button from '../../components/ui/Button';
-import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
+
 
 const PleaseConfirm = () => {
   const location = useLocation();
@@ -28,9 +28,7 @@ const PleaseConfirm = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
-      <div className="absolute inset-0 z-0"> {/* LiquidEther as background */}
-        <LiquidEther colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]} />
-      </div>
+      
       <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 text-center z-10"> {/* Added z-10 */}
         <h2 className="text-2xl font-bold text-gray-900">Please Confirm Your Email</h2>
         <p className="mt-4">

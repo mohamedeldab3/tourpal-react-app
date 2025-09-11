@@ -5,7 +5,7 @@ import Button from "../../components/ui/Button";
 import { getCities, getUserTypes } from "../../api/listsService";
 import { register } from "../../api/authService";
 import { toast } from "sonner"; // Import toast
-import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
+
 
 interface City {
   id: number;
@@ -105,9 +105,7 @@ const Register: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
-      <div className="absolute inset-0 z-0"> {/* LiquidEther as background */}
-        <LiquidEther colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]} />
-      </div>
+      
       <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> {/* Added z-10 */}
         <div
           className="hidden md:block w-1/2 bg-cover bg-center rounded-l-xl"

@@ -34,7 +34,7 @@ const DocumentManager: React.FC = () => {
 
     const handleFileChange = (docName: string, event: React.ChangeEvent<HTMLInputElement>) => {
         if (event.target.files && event.target.files[0]) {
-            setFiles(prev => ({ ...prev, [docName]: event.target.files[0] }));
+            setFiles(prev => ({ ...prev, [docName]: event.target.files![0] }));
         }
     };
 

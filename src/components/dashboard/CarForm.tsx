@@ -50,7 +50,7 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
                 const [types, feats, allCities] = await Promise.all([
                     getCarTypesList(),
                     getCarFeatures(),
-                    getCities(),
+                    getCities(1),
                 ]);
                 setCarTypes(types);
                 setFeatures(feats);
