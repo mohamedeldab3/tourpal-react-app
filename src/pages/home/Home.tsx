@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import { getBanners, BannerDto } from '../../api/bannerService'; // استيراد خدمة اللافتات
+import { getTourGuidesList, TourGuide } from '../../api/tourGuideService'; // استيراد خدمة المرشدين السياحيين
 
 const Home: React.FC = () => {
     // Mock data for featured items
@@ -13,6 +14,8 @@ const Home: React.FC = () => {
 
     // حالة اللافتات
     const [banners, setBanners] = useState<BannerDto[]>([]);
+    // حالة المرشدين السياحيين
+    const [tourGuides, setTourGuides] = useState<TourGuide[]>([]);
 
     useEffect(() => {
         const fetchBanners = async () => {
@@ -23,7 +26,16 @@ const Home: React.FC = () => {
                 console.error("Could not fetch banners:", error);
             }
         };
+        const fetchTourGuides = async () => {
+            try {
+                const guides = await getTourGuidesList();
+                setTourGuides(guides || []);
+            } catch (error) {
+                console.error("Could not fetch tour guides:", error);
+            }
+        };
         fetchBanners();
+        fetchTourGuides();
     }, []);
 
     return (
@@ -78,6 +90,70 @@ const Home: React.FC = () => {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Featured Tour Guides Section */}
+            <section className="py-16 bg-gray-100">
+                <div className="container mx-auto px-6">
+                    <h2 className="text-3xl font-bold text-center mb-12">Featured Tour Guides</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {tourGuides.slice(0, 3).map((guide) => (
+                            <div key={guide.id} className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300">
+                                <img src={guide.profilePictureUrl || 'https://via.placeholder.com/150'} alt={guide.fullName} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                <div className="p-6">
+                                    <h3 className="text-xl font-bold">{guide.fullName}</h3>
+                                    <p className="text-gray-600 mt-2">
+                                        {guide.city}, {guide.experienceYears} years experience
+                                    </p>
+                                    <p className="text-gray-600">Languages: {guide.languages.join(', ')}</p>
+                                    <div className="mt-4 flex justify-end">
+                                        <Link to={`/tour-guide/${guide.id}`} className="font-semibold text-purple-600 hover:text-purple-800">
+                                            View Profile
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-center mt-12">
+                        <Link to="/tour-guide-search">
+                            <Button size="lg">Explore All Tour Guides</Button>
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* Other Services Section (Placeholder) */}
+            <section className="py-16 bg-white">
+                <div className="container mx-auto px-6 text-center">
+                    <h2 className="text-3xl font-bold mb-8">Discover Other Services</h2>
+                    <p className="text-lg text-gray-700 max-w-2xl mx-auto mb-12">
+                        From car rentals to unique local experiences, find everything you need for your perfect trip.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="p-6 border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <h3 className="text-xl font-semibold mb-2">Car Rentals</h3>
+                            <p className="text-gray-600">Find the perfect vehicle for your journey.</p>
+                            <Link to="/search" className="mt-4 inline-block text-purple-600 hover:text-purple-800 font-semibold">
+                                Browse Cars &rarr;
+                            </Link>
+                        </div>
+                        <div className="p-6 border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <h3 className="text-xl font-semibold mb-2">Local Experiences</h3>
+                            <p className="text-gray-600">Discover unique activities and tours.</p>
+                            <Link to="/search" className="mt-4 inline-block text-purple-600 hover:text-purple-800 font-semibold">
+                                Find Experiences &rarr;
+                            </Link>
+                        </div>
+                        <div className="p-6 border rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <h3 className="text-xl font-semibold mb-2">Event Planning</h3>
+                            <p className="text-gray-600">Organize your events with professional help.</p>
+                            <Link to="/search" className="mt-4 inline-block text-purple-600 hover:text-purple-800 font-semibold">
+                                Learn More &rarr;
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </section>
