@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { forgotPassword } from '../../api/authService';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -31,8 +32,11 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
+      <div className="absolute inset-0 z-0"> {/* LiquidEther as background */}
+        <LiquidEther colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]} />
+      </div>
+      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 z-10"> {/* Added z-10 */}
         <h2 className="text-3xl font-bold text-gray-900 text-center">Forgot Password</h2>
         <p className="mt-2 text-center text-gray-600">
           Enter your email to receive a password reset link.

@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { login as apiLogin, sendEmailConfirmation } from "../../api/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -69,8 +70,11 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
+      <div className="absolute inset-0 z-0"> {/* LiquidEther as background */}
+        <LiquidEther colors={[ '#5227FF', '#FF9FFC', '#B19EEF' ]} />
+      </div>
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> {/* Added z-10 */}
         <div
           className="hidden md:block w-1/2 bg-cover bg-center rounded-l-xl"
           style={{

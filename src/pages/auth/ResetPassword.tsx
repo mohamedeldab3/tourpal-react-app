@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../../api/authService';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import LiquidEther from '../../components/LiquidEther/LiquidEther'; // Import LiquidEther
 
 const ResetPassword = () => {
   const [token, setToken] = useState('');
@@ -29,10 +30,12 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (newPassword !== confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
+
     setIsLoading(true);
     setError('');
     setMessage('');
@@ -53,8 +56,11 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0 z-0">
+        <LiquidEther colors={['#5227FF', '#FF9FFC', '#B19EEF']} />
+      </div>
+      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 z-10">
         <h2 className="text-3xl font-bold text-gray-900 text-center">Reset Password</h2>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <Input
@@ -84,7 +90,7 @@ const ResetPassword = () => {
               {isLoading ? 'Resetting...' : 'Reset Password'}
             </Button>
           </div>
-          
+
           {message && (
             <div className="text-center mt-4">
               <Link to="/login" className="font-medium text-purple-600 hover:text-purple-500">
