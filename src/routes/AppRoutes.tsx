@@ -15,6 +15,7 @@ import CarDetail from '../pages/car/CarDetail';
 import UserDashboard from '../pages/dashboard/UserDashboard';
 import ProviderDashboard from '../pages/dashboard/ProviderDashboard';
 import AdminDashboard from '../pages/dashboard/AdminDashboard';
+import ClientDashboard from '../pages/dashboard/ClientDashboard'; // Import ClientDashboard
 import ProtectedRoute from './ProtectedRoute';
 import Profile from '../pages/dashboard/Profile';
 import TourGuideSearch from '../pages/tour-guide/TourGuideSearch';
@@ -44,6 +45,7 @@ const AppRoutes: React.FC = () => {
       </Route>
 
       {/* المسارات المحمية (داشبورد) */}
+      {/* المسارات المحمية (داشبورد) */}
       <Route
         path="/dashboard"
         element={
@@ -53,11 +55,12 @@ const AppRoutes: React.FC = () => {
         }
       >
         <Route index element={<Profile />} />
-        <Route path="user" element={<UserDashboard />} />
-        <Route path="provider" element={<ProviderDashboard />} />
-        <Route path="admin" element={<AdminDashboard />} />
+        <Route path="user" element={<ProtectedRoute allowedRoles={['user']}><UserDashboard /></ProtectedRoute>} />
+        <Route path="provider" element={<ProtectedRoute allowedRoles={['provider']}><ProviderDashboard /></ProtectedRoute>} />
+        <Route path="admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="client" element={<ProtectedRoute allowedRoles={['user']}><ClientDashboard /></ProtectedRoute>} /> {/* New Client Dashboard Route */}
         <Route path="profile" element={<Profile />} />
-        <Route path="create-ad" element={<CreateAdvertisement />} /> {/* إضافة المسار الجديد */}
+        <Route path="create-ad" element={<ProtectedRoute allowedRoles={['provider']}><CreateAdvertisement /></ProtectedRoute>} /> {/* إضافة المسار الجديد */}
       </Route>
     </Routes>
   );

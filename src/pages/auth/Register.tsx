@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { getCities, getUserTypes } from "../../api/listsService";
+import { register } from "../../api/authService";
 
 interface City {
   id: number;
@@ -28,6 +29,7 @@ const Register: React.FC = () => {
   const [cities, setCities] = useState<City[]>([]);
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [clientUserTypeId, setClientUserTypeId] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
   // Dynamically find UserType IDs
@@ -45,6 +47,10 @@ const Register: React.FC = () => {
         setUserTypes(userTypesData);
         if (userTypesData.length > 0) {
           setFormData(prev => ({ ...prev, UserType: userTypesData[0].id }));
+        }
+        const clientType = userTypesData.find(type => type.name === 'Client');
+        if (clientType) {
+          setClientUserTypeId(clientType.id);
         }
       } catch (error) {
         console.error("Failed to fetch initial data", error);
@@ -73,15 +79,26 @@ const Register: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (passwordError) {
       return;
     }
     
-    // Navigate to step 2 with the form data
-    navigate('/register-step2', { state: { formData } });
+    if (formData.UserType === clientUserTypeId) {
+      try {
+        await register(formData);
+        alert("Registration successful! Please check your email to confirm your account.");
+        navigate('/login');
+      } catch (error) {
+        console.error("Client registration failed:", error);
+        alert("Registration failed. Please try again.");
+      }
+    } else {
+      // Navigate to step 2 with the form data
+      navigate('/register-step2', { state: { formData } });
+    }
   };
 
   return (
@@ -225,7 +242,7 @@ const Register: React.FC = () => {
             
             <div>
               <Button type="submit" className="w-full" disabled={!!passwordError}>
-                Next: Upload Documents
+                {formData.UserType === clientUserTypeId ? "Sign Up" : "Next: Upload Documents"}
               </Button>
             </div>
           </form>

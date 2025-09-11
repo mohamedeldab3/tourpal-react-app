@@ -23,6 +23,7 @@ const userTypeTranslations: { [key: string]: string } = {
   "شركة سياحه": "Tourism Company",
   "شركة سياحة": "Tourism Company", // Added with 'ة' for robustness
   "مستخدم عادي": "Regular User",
+  "عميل": "Client",
   "مزود خدمة": "Service Provider",
   "مشرف نظام": "System Admin",
 };

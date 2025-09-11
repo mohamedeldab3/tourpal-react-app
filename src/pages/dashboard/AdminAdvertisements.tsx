@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from '../../api/bannerService';
 import Button from '../../components/ui/Button';
+import Modal from '../../components/ui/Modal';
 
 const AdminAdvertisements: React.FC = () => {
     const [advertisements, setAdvertisements] = useState<AdvertisementDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [currentAdId, setCurrentAdId] = useState<string | null>(null);
+    const [rejectionReason, setRejectionReason] = useState('');
 
     useEffect(() => {
         fetchAdvertisements();
@@ -37,6 +41,27 @@ const AdminAdvertisements: React.FC = () => {
         }
     };
 
+    const handleRejectClick = (adId: string) => {
+        setCurrentAdId(adId);
+        setShowRejectModal(true);
+    };
+
+    const confirmReject = async () => {
+        if (currentAdId) {
+            try {
+                await handleAdvertisement(currentAdId, false, rejectionReason);
+                alert('Advertisement rejected successfully!');
+                setShowRejectModal(false);
+                setRejectionReason('');
+                setCurrentAdId(null);
+                fetchAdvertisements();
+            } catch (err) {
+                console.error('Failed to reject advertisement', err);
+                setError('Failed to reject advertisement.');
+            }
+        }
+    };
+
     if (loading) {
         return <div className="p-8 text-center">Loading advertisements...</div>;
     }
@@ -58,18 +83,35 @@ const AdminAdvertisements: React.FC = () => {
                             {ad.imagePath && (
                                 <img src={ad.imagePath} alt={ad.title} className="w-full h-48 object-cover rounded-md mb-4"/>
                             )}
-                            <p className="text-gray-700 mb-2">{ad.description}</p>
+                            <p className="text-gray-700 mb-2">Description: {ad.description}</p>
                             <p className="text-sm text-gray-500">Position: {ad.position}</p>
                             <p className="text-sm text-gray-500">Start Date: {new Date(ad.startDate).toLocaleDateString()}</p>
                             <p className="text-sm text-gray-500">End Date: {new Date(ad.endDate).toLocaleDateString()}</p>
                             <div className="mt-4 flex space-x-2">
                                 <Button onClick={() => handleAction(ad.id, true)} className="bg-green-500 hover:bg-green-600 text-white">Approve</Button>
-                                <Button onClick={() => handleAction(ad.id, false)} className="bg-red-500 hover:bg-red-600 text-white">Reject</Button>
+                                <Button onClick={() => handleRejectClick(ad.id)} className="bg-red-500 hover:bg-red-600 text-white">Reject</Button>
                             </div>
                         </div>
                     ))}
                 </div>
             )}
+
+            <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} title="Reject Advertisement">
+                <div className="p-4">
+                    <p className="mb-4">Please provide a reason for rejecting this advertisement:</p>
+                    <textarea
+                        className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                        rows={4}
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Reason for rejection..."
+                    ></textarea>
+                    <div className="flex justify-end space-x-2">
+                        <Button onClick={() => setShowRejectModal(false)} className="bg-gray-300 hover:bg-gray-400 text-gray-800">Cancel</Button>
+                        <Button onClick={confirmReject} className="bg-red-500 hover:bg-red-600 text-white" disabled={!rejectionReason.trim()}>Confirm Reject</Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

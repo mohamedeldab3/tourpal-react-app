@@ -73,7 +73,7 @@ export const getPendingAdvertisements = async (): Promise<AdvertisementDto[]> =>
 /**
  * دالة (للأدمن) للموافقة على إعلان أو رفضه
  */
-export const handleAdvertisement = async (adId: string, isApproved: boolean): Promise<any> => {
-    const response = await apiClient.post(`/api/Banner/advertisements/${adId}/handle`, { isApproved });
+export const handleAdvertisement = async (adId: string, isApproved: boolean, reason?: string): Promise<any> => {
+    const response = await apiClient.post(`/api/Banner/advertisements/${adId}/handle`, { isApproved, reason });
     return response.data;
 };

@@ -107,8 +107,15 @@ const RegisterStep2 = () => {
                 }
             }
 
-            // 3. Navigate to confirmation page
-            navigate('/please-confirm', { state: { email: registrationData.Email } });
+            // 3. Navigate based on user type
+            const fetchedUserTypes = await getUserTypes();
+            const userType = fetchedUserTypes.find(type => type.name === 'User'); // Assuming 'User' is the client type name
+
+            if (userType && registrationData.UserType === userType.id) {
+                navigate('/login'); // Direct to login for regular users
+            } else {
+                navigate('/please-confirm', { state: { email: registrationData.Email } });
+            }
 
         } catch (err: any) {
             setError(err.response?.data?.message || 'An error occurred during registration. Please try again.');
