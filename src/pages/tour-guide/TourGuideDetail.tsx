@@ -4,6 +4,7 @@ import { getTourGuideDetails, requestTourGuide, TourGuideDetails } from '../../a
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../context/AuthContext';
 import RequestGuideModal, { GuideRequestPayload } from '../../components/booking/RequestGuideModal';
+import { toast } from "sonner"; // Import toast
 
 const TourGuideDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -56,10 +57,10 @@ const TourGuideDetail: React.FC = () => {
                 requestNotes: payload.notes,
                 requiredLanguageId: 1 // قيمة افتراضية مؤقتًا
             });
-            alert('Request sent successfully!');
+            toast.success('Request sent successfully!'); // Use toast.success
             setIsModalOpen(false);
         } catch (error) {
-            alert('Failed to send request. Please try again.');
+            toast.error('Failed to send request. Please try again.'); // Use toast.error
             console.error('Request submission error:', error);
         } finally {
             setIsSubmitting(false);
@@ -126,4 +127,3 @@ const TourGuideDetail: React.FC = () => {
 };
 
 export default TourGuideDetail;
-

@@ -6,6 +6,7 @@ import type { Car } from '../../api/carService';
 import { useAuth } from '../../context/AuthContext'; // للتحقق من تسجيل الدخول
 import Button from '../../components/ui/Button';
 import BookingModal from '../../components/booking/BookingModal'; // استيراد المكون الجديد
+import { toast } from "sonner"; // Import toast
 
 const CarDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -45,11 +46,11 @@ const CarDetail: React.FC = () => {
                 ...details,
             });
             setIsBookingModalOpen(false);
-            alert('Your booking request has been sent successfully!');
+            toast.success('Your booking request has been sent successfully!'); // Use toast.success
             navigate('/dashboard/user'); // توجيه المستخدم لصفحة حجوزاته
         } catch (error) {
             console.error("Booking failed:", error);
-            alert("Failed to send booking request. Please try again.");
+            toast.error("Failed to send booking request. Please try again."); // Use toast.error
         }
     };
 
@@ -122,4 +123,3 @@ const CarDetail: React.FC = () => {
 };
 
 export default CarDetail;
-

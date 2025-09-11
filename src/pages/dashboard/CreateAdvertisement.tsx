@@ -4,6 +4,7 @@ import { createAdvertisement } from '../../api/bannerService';
 import { getAdvPostionsList, BasicListDto } from '../../api/listsService';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { toast } from "sonner"; // Import toast
 
 const CreateAdvertisement: React.FC = () => {
     const [title, setTitle] = useState('');
@@ -53,7 +54,7 @@ const CreateAdvertisement: React.FC = () => {
                 startDate,
                 endDate
             });
-            alert('Advertisement created successfully! It is now pending admin approval.');
+            toast.success('Advertisement created successfully! It is now pending admin approval.'); // Use toast.success
             navigate('/dashboard/profile'); // Redirect to a relevant page
         } catch (err) {
             setError('Failed to create advertisement. Please try again.');

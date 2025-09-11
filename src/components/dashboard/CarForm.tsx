@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getCarTypesList, getCarFeatures, getCities, BasicListDto } from '../../api/listsService';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import { toast } from "sonner"; // Import toast
 
 interface CarFormProps {
     onSubmit: (data: any) => void;
@@ -50,7 +51,7 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
                 }
             } catch (error) {
                 console.error("Failed to load car form data", error);
-                alert("Could not load necessary data for the form. Please try again later.");
+                toast.error("Could not load necessary data for the form. Please try again later."); // Use toast.error
             } finally {
                 setIsLoading(false);
             }
@@ -131,7 +132,7 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
                                 onChange={() => handleFeatureChange(feature.id.toString())}
                                 className="h-4 w-4 text-purple-600 border-gray-300 rounded"
                             />
-                            <label htmlFor={`feature-${feature.id}`} className="ml-2 block text-sm text-gray-900">{feature.name}</label>
+                            <label htmlFor={`feature-${feature.id}`} className="ml-2 block text-sm text-gray-900">{(feature.name)}</label>
                         </div>
                     ))}
                 </div>
@@ -147,4 +148,3 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
 };
 
 export default CarForm;
-

@@ -5,6 +5,7 @@ import { register } from '../../api/authService';
 import { uploadDocument } from '../../api/userService';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
+import { toast } from "sonner"; // Import toast
 
 interface UserType {
   id: number;
@@ -82,7 +83,7 @@ const RegisterStep2 = () => {
 
     const handleSubmit = async () => {
         if (!areMandatoryFieldsFilled()) {
-            alert('Please fill all mandatory fields and upload all required documents.');
+            toast.error('Please fill all mandatory fields and upload all required documents.'); // Use toast.error
             return;
         }
 
@@ -155,11 +156,12 @@ const RegisterStep2 = () => {
                     <h3 className="text-xl font-bold mb-4">Required Documents</h3>
                     <div className="space-y-4">
                         {requiredDocs.map(doc => (
-                            <div key={doc.id} className="p-4 border rounded-lg">
+                            <div key={doc.id} className="p-4 border border-gray-200 rounded-lg">
                                 <label htmlFor={`file-${doc.id}`} className="font-medium">
                                     {doc.name} {doc.isMandatory && <span className="text-red-500">*</span>}
                                 </label>
-                                <input id={`file-${doc.id}`} type="file" onChange={(e) => handleFileChange(doc.id, e)} className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100" />
+                                <input id={`file-${doc.id}`} type="file" onChange={(e) => handleFileChange(doc.id, e)} className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                                />
                             </div>
                         ))}
                     </div>

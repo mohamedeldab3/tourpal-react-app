@@ -4,6 +4,7 @@ import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import { getCities, getUserTypes } from "../../api/listsService";
 import { register } from "../../api/authService";
+import { toast } from "sonner"; // Import toast
 
 interface City {
   id: number;
@@ -89,11 +90,11 @@ const Register: React.FC = () => {
     if (formData.UserType === clientUserTypeId) {
       try {
         await register(formData);
-        alert("Registration successful! Please check your email to confirm your account.");
+        toast.success("Registration successful! Please check your email to confirm your account."); // Use toast.success
         navigate('/login');
       } catch (error) {
         console.error("Client registration failed:", error);
-        alert("Registration failed. Please try again.");
+        toast.error("Registration failed. Please try again."); // Use toast.error
       }
     } else {
       // Navigate to step 2 with the form data

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';
+import { toast } from "sonner"; // Import toast
 
 // واجهة للبيانات التي يتم إرسالها عند تقديم الطلب
 export interface GuideRequestPayload {
@@ -27,7 +28,7 @@ const RequestGuideModal: React.FC<RequestGuideModalProps> = ({ isOpen, onClose, 
         e.preventDefault();
         // التحقق من أن تاريخ البداية ليس بعد تاريخ النهاية
         if (new Date(startDate) > new Date(endDate)) {
-            alert("Start date cannot be after end date.");
+            toast.error("Start date cannot be after end date."); // Use toast.error
             return;
         }
         onSubmit({ startDate, endDate, notes });

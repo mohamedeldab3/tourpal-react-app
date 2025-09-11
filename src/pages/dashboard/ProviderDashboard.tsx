@@ -5,6 +5,7 @@ import type { CarFormData } from '../../components/dashboard/CarForm'; // Import
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import CarForm from '../../components/dashboard/CarForm'; // Import the new form
+import { toast } from "sonner"; // Import toast
 
 const ProviderDashboard: React.FC = () => {
     const [cars, setCars] = useState<Car[]>([]);
@@ -33,11 +34,11 @@ const ProviderDashboard: React.FC = () => {
         try {
             await addCar(formData);
             setIsModalOpen(false);
-            alert('Vehicle added successfully!');
+            toast.success('Vehicle added successfully!'); // Use toast.success
             fetchCars(); // Refresh the list
         } catch (error) {
             console.error("Failed to add car:", error);
-            alert('Failed to add vehicle. Please try again.');
+            toast.error('Failed to add vehicle. Please try again.'); // Use toast.error
         } finally {
             setIsSubmitting(false);
         }
@@ -48,10 +49,10 @@ const ProviderDashboard: React.FC = () => {
             try {
                 await deleteCar(carId);
                 setCars(cars.filter(car => car.id !== carId));
-                alert('Vehicle deleted successfully!');
+                toast.success('Vehicle deleted successfully!'); // Use toast.success
             } catch (error) {
                 console.error("Failed to delete car:", error);
-                alert('Failed to delete vehicle. Please try again.');
+                toast.error('Failed to delete vehicle. Please try again.'); // Use toast.error
             }
         }
     };
@@ -110,4 +111,3 @@ const ProviderDashboard: React.FC = () => {
 };
 
 export default ProviderDashboard;
-

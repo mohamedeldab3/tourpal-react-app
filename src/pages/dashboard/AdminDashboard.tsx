@@ -14,6 +14,7 @@ import { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from 
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
+import { toast } from "sonner"; // Import toast
 
 const AdminDashboard: React.FC = () => {
     // State for user management
@@ -51,7 +52,7 @@ const AdminDashboard: React.FC = () => {
             }
         } catch (error) {
             console.error("Failed to fetch data:", error);
-            alert("Could not fetch data. Please try refreshing the page.");
+            toast.error("Could not fetch data. Please try refreshing the page."); // Use toast.error
         } finally {
             setIsLoading(false);
         }
@@ -71,13 +72,13 @@ const AdminDashboard: React.FC = () => {
                 Phone: '0000000000', // Add dummy data for required fields
                 CityId: '1', // Add dummy data for required fields
              });
-            alert('Admin user created successfully!');
+            toast.success('Admin user created successfully!'); // Use toast.success
             setIsCreateAdminModalOpen(false);
             setNewAdmin({ FullName: '', Email: '', Password: '' });
             fetchData(); // Refresh user list
         } catch (error: any) {
             console.error("Failed to create admin:", error);
-            alert(error.response?.data?.message || "An error occurred while creating the admin.");
+            toast.error(error.response?.data?.message || "An error occurred while creating the admin."); // Use toast.error
         } finally {
             setIsCreatingAdmin(false);
         }

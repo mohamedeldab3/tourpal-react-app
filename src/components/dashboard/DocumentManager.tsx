@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { checkUserDocuments, uploadDocument, deleteDocument, RequiredDocument } from '../../api/userService';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
+import { toast } from "sonner"; // Import toast
 
 const DocumentManager: React.FC = () => {
     const [requiredDocs, setRequiredDocs] = useState<RequiredDocument[]>([]);
@@ -44,7 +45,7 @@ const DocumentManager: React.FC = () => {
     const handleUpload = async (doc: RequiredDocument) => {
         const file = files[doc.documentName];
         if (!file || !user?.email) {
-            alert('Please select a file and ensure you are logged in.');
+            toast.error('Please select a file and ensure you are logged in.'); // Use toast.error
             return;
         }
 
@@ -59,7 +60,7 @@ const DocumentManager: React.FC = () => {
 
         try {
             await uploadDocument(formData);
-            alert('Document uploaded successfully!');
+            toast.success('Document uploaded successfully!'); // Use toast.success
             await fetchData();
             setFiles(prev => ({ ...prev, [doc.documentName]: null }));
             setNotes(prev => ({ ...prev, [doc.documentName]: '' }));
@@ -78,7 +79,7 @@ const DocumentManager: React.FC = () => {
 
         try {
             await deleteDocument(documentId);
-            alert('Document deleted successfully.');
+            toast.success('Document deleted successfully.'); // Use toast.success
             await fetchData();
         } catch (err) {
             console.error("Failed to delete document:", err);

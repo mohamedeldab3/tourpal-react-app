@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from '../../api/bannerService';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
+import { toast } from "sonner"; // Import toast
 
 const AdminAdvertisements: React.FC = () => {
     const [advertisements, setAdvertisements] = useState<AdvertisementDto[]>([]);
@@ -33,7 +34,7 @@ const AdminAdvertisements: React.FC = () => {
     const handleAction = async (adId: string, isApproved: boolean) => {
         try {
             await handleAdvertisement(adId, isApproved);
-            alert(`Advertisement ${isApproved ? 'approved' : 'rejected'} successfully!`);
+            toast.success(`Advertisement ${isApproved ? 'approved' : 'rejected'} successfully!`); // Use toast.success
             fetchAdvertisements(); // Refresh the list
         } catch (err) {
             console.error(`Failed to ${isApproved ? 'approve' : 'reject'} advertisement`, err);
@@ -50,14 +51,14 @@ const AdminAdvertisements: React.FC = () => {
         if (currentAdId) {
             try {
                 await handleAdvertisement(currentAdId, false, rejectionReason);
-                alert('Advertisement rejected successfully!');
+                toast.success('Advertisement rejected successfully!'); // Use toast.success
                 setShowRejectModal(false);
                 setRejectionReason('');
                 setCurrentAdId(null);
                 fetchAdvertisements();
             } catch (err) {
                 console.error('Failed to reject advertisement', err);
-                setError('Failed to reject advertisement.');
+                setError('Failed to reject advertisement. Please try again.');
             }
         }
     };
