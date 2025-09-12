@@ -129,6 +129,7 @@ const DocumentManager: React.FC = () => {
                                     <div>
                                         <Input
                                             id={`notes-${doc.documentName}`}
+                                            label="Notes (optional)"
                                             type="text"
                                             placeholder="Notes (optional)"
                                             value={notes[doc.documentName] || ''}

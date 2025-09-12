@@ -1,4 +1,6 @@
-// ... imports ...
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+
 const navLinks = {
     user: [
         { path: '/dashboard/user', label: 'My Bookings', icon: 'receipt_long' },
@@ -17,26 +19,17 @@ const navLinks = {
 }
 
 const Sidebar: React.FC = () => {
-    // ... existing code ...
-    const { user, logout } = useAuth();
-    const navigate = useNavigate();
-    
-    const handleLogout = () => {
-        logout();
-        navigate('/login');
-    };
+    const { user } = useAuth();
 
     const userRole = user?.userType || 'user';
-    // Ensure that roleNavLinks is an array even if userRole does not match
     const roleNavLinks = navLinks[userRole as keyof typeof navLinks] || [];
 
     return (
         <aside className="w-64 bg-white p-4 flex flex-col justify-between border-r">
             <div>
-                {/* ... existing header ... */}
                 <nav className="flex flex-col gap-2">
                     {roleNavLinks.map(link => (
-                        <NavLink key={link.path} to={link.path} className={({ isActive }) =>
+                        <NavLink key={link.path} to={link.path} className={({ isActive }: { isActive: boolean }) =>
                             `flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                                 isActive ? 'bg-purple-100 text-purple-700 font-bold' : 'text-gray-600 hover:bg-gray-100'
                             }`
@@ -47,7 +40,6 @@ const Sidebar: React.FC = () => {
                     ))}
                 </nav>
             </div>
-            {/* ... existing logout button ... */}
         </aside>
     );
 };

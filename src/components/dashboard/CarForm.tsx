@@ -97,7 +97,7 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
     }
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Car Type and City */}
                 <div>
@@ -114,16 +114,16 @@ const CarForm: React.FC<CarFormProps> = ({ onSubmit, initialData = {}, isSubmitt
                 </div>
 
                 {/* Brand and Model */}
-                <Input label="Brand" name="brand" value={formData.brand} onChange={handleChange} required />
-                <Input label="Model" name="model" value={formData.model} onChange={handleChange} required />
+                <Input id="brand" label="Brand" name="brand" value={formData.brand} onChange={handleChange} required />
+                <Input id="model" label="Model" name="model" value={formData.model} onChange={handleChange} required />
 
                 {/* Year and Plate Number */}
-                 <Input label="Year" name="year" type="number" value={formData.year} onChange={handleChange} required />
-                <Input label="Plate Number" name="plateNumber" value={formData.plateNumber} onChange={handleChange} required />
+                 <Input id="year" label="Year" name="year" type="number" value={formData.year} onChange={handleChange} required />
+                <Input id="plateNumber" label="Plate Number" name="plateNumber" value={formData.plateNumber} onChange={handleChange} required />
 
                  {/* Capacity and Price */}
-                <Input label="Capacity (Seats)" name="capacity" type="number" value={formData.capacity} onChange={handleChange} required />
-                <Input label="Price per Day ($)" name="pricePerDay" type="number" value={formData.pricePerDay} onChange={handleChange} required />
+                <Input id="capacity" label="Capacity (Seats)" name="capacity" type="number" value={formData.capacity} onChange={handleChange} required />
+                <Input id="pricePerDay" label="Price per Day ($)" name="pricePerDay" type="number" value={formData.pricePerDay} onChange={handleChange} required />
             </div>
 
             {/* Description */}

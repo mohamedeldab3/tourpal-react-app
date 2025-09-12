@@ -61,8 +61,9 @@ const RegisterStep2 = () => {
     }, [registrationData, navigate]); // Removed isCarOwner from dependency array
 
     const handleFileChange = (docId: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
-            setFiles(prev => ({ ...prev, [docId]: event.target.files[0] }));
+        const file = event.target.files?.[0];
+        if (file) {
+            setFiles(prev => ({ ...prev, [docId]: file }));
         }
     };
 

@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   getPendingApprovals, 
-  approveUser, 
-  suspendUser, 
   getUsersList, 
-  verifyUserDocument,
   PendingUser, 
-  User, 
-  Document as UserDocument 
+  User
 } from '../../api/userService';
 import { register } from '../../api/authService'; // Import register function
-import { getPendingAdvertisements, handleAdvertisement, AdvertisementDto } from '../../api/bannerService';
+import { getPendingAdvertisements } from '../../api/bannerService';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import Input from '../../components/ui/Input';
@@ -18,8 +14,8 @@ import { toast } from "sonner"; // Import toast
 
 const AdminDashboard: React.FC = () => {
     // State for user management
-    const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
-    const [users, setUsers] = useState<User[]>([]);
+    const [, setPendingUsers] = useState<PendingUser[]>([]);
+    const [, setUsers] = useState<User[]>([]);
     const [isCreateAdminModalOpen, setIsCreateAdminModalOpen] = useState(false);
     const [newAdmin, setNewAdmin] = useState({ FullName: '', Email: '', Password: '' });
     const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
@@ -46,7 +42,7 @@ const AdminDashboard: React.FC = () => {
                 const response = await getUsersList();
                 setUsers(response || []);
             } else if (activeTab === 'ads') {
-                const response = await getPendingAdvertisements();
+                await getPendingAdvertisements();
                 // setPendingAds(response || []);
             }
         } catch (error) {
