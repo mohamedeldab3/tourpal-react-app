@@ -49,7 +49,6 @@ const Login: React.FC = () => {
       const response = await apiLogin({
         email,
         password,
-        rememberMe,
       });
       console.log("4. apiLogin successful:", response);
 

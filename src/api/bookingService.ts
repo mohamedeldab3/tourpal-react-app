@@ -1,6 +1,5 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
-// ... existing Booking interface ...
 export interface Booking {
   id: string;
   carName: string; 
@@ -9,7 +8,6 @@ export interface Booking {
   status: 'Upcoming' | 'Completed' | 'Cancelled'; 
 }
 
-// واجهة لنوع بيانات طلب الحجز
 interface BookingRequestPayload {
   carId: string;
   startDate: string;
@@ -17,28 +15,27 @@ interface BookingRequestPayload {
   requestNotes?: string;
 }
 
-/**
- * جلب قائمة حجوزات المستخدم الحالي.
- * Corresponds to: GET /api/TourismCompany/rental-requests
- */
+import { db } from '../data/staticDb'; // Import the static database
+
 export const getUserBookings = async (): Promise<Booking[]> => {
-// ... existing getUserBookings function code ...
-    const { data } = await apiClient.get('/TourismCompany/rental-requests');
-    return data.map((item: any) => ({
-        id: item.requestId,
-        carName: `${item.car.brand} ${item.car.model}`,
-        provider: item.provider.name,
-        date: item.startDate,
-        status: item.status 
-    }));
+    console.log('Static getUserBookings called');
+    return Promise.resolve(db.bookings);
 };
 
-/**
- * إنشاء طلب حجز جديد.
- * Corresponds to: POST /api/TourismCompany/car-rental-requests
- */
 export const createBookingRequest = async (payload: BookingRequestPayload): Promise<any> => {
-  const { data } = await apiClient.post('/TourismCompany/car-rental-requests', payload);
-  return data;
+  console.log('Static createBookingRequest called with:', payload);
+  return new Promise(resolve => {
+    setTimeout(() => {
+      const newBooking: Booking = {
+        id: `book-${db.bookings.length + 1}`,
+        carName: `Car ID: ${payload.carId}`, // Simplified car name
+        provider: 'Simulated Provider', // Simplified provider
+        date: payload.startDate,
+        status: 'Upcoming',
+      };
+      db.bookings.push(newBooking);
+      console.log('Booking request created (simulated) and added to DB:', newBooking);
+      resolve({ success: true, message: 'Booking request simulated.' });
+    }, 500);
+  });
 };
-

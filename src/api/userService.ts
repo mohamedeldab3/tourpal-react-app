@@ -1,6 +1,5 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
-// ✅ FIX: Added 'export' to all interfaces to make them reusable.
 export interface PendingUser {
   userId: string;
   fullName: string;
@@ -34,8 +33,8 @@ export interface RequiredDocument {
     documentName: string;
     isUploaded: boolean;
     isVerified: boolean;
-    documentType: number; // Added documentType to be used when uploading
-    id: number; // Added id to be used when deleting
+    documentType: number;
+    id: number;
 }
 
 export interface UserProfile {
@@ -49,77 +48,112 @@ export interface UserProfile {
     documents: Document[];
 }
 
-// ✅ FIX: Added 'export' before each function.
+import { db } from '../data/staticDb'; // Import the static database
 
-/**
- * Fetches the list of users with pending approvals.
- */
 export const getPendingApprovals = async (): Promise<PendingUser[]> => {
-    const response = await apiClient.get('/api/Account/pending-approvals');
-    return response.data;
+    console.log('Static getPendingApprovals called');
+    return Promise.resolve(db.pendingUsers);
 };
 
-/**
- * Sends a request to approve or reject a user.
- */
 export const approveUser = async (payload: ApproveUserPayload): Promise<void> => {
-    await apiClient.post('/api/Account/user-approve', payload);
-};
-
-/**
- * Suspends a user's account.
- */
-export const suspendUser = async (userId: string): Promise<void> => {
-    await apiClient.post(`/api/Account/suspend/${userId}`);
-};
-
-/**
- * Fetches the complete list of all users.
- */
-export const getUsersList = async (): Promise<User[]> => {
-    const response = await apiClient.get('/api/Account/users-list');
-    return response.data;
-};
-
-/**
- * Fetches the profile of the currently logged-in user.
- */
-export const getProfile = async (): Promise<UserProfile> => {
-    const response = await apiClient.get('/api/Account/get-profile');
-    return response.data;
-};
-
-/**
- * Checks the status of required documents for a user.
- */
-export const checkUserDocuments = async (userId?: string): Promise<RequiredDocument[]> => {
-    const url = userId ? `/api/Account/check-user-documents?userId=${userId}` : '/api/Account/check-user-documents';
-    const response = await apiClient.get(url);
-    return response.data;
-};
-
-/**
- * Uploads a document for the user.
- */
-export const uploadDocument = async (formData: FormData): Promise<void> => {
-    await apiClient.post('/api/Account/upload-document', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
+    console.log('Static approveUser called with:', payload);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const userIndex = db.pendingUsers.findIndex(u => u.userId === payload.userId);
+            if (userIndex !== -1) {
+                const approvedUser = db.pendingUsers.splice(userIndex, 1)[0]; // Remove from pending
+                const userInAllUsers = db.users.find(u => u.id === approvedUser.userId);
+                if (userInAllUsers) {
+                    userInAllUsers.status = payload.status === 'Approved' ? 'Active' : 'Rejected';
+                } else {
+                    // If not found in all users, add them
+                    db.users.push({
+                        id: approvedUser.userId,
+                        fullName: approvedUser.fullName,
+                        email: `${approvedUser.fullName.replace(/\s/g, '').toLowerCase()}@demo.com`, // Dummy email
+                        userType: approvedUser.userType,
+                        status: payload.status === 'Approved' ? 'Active' : 'Rejected',
+                    });
+                }
+                console.log(`User ${payload.userId} ${payload.status} (simulated).`);
+            }
+            resolve();
+        }, 500);
     });
 };
 
-/**
- * Deletes a document.
- */
-export const deleteDocument = async (documentId: number): Promise<void> => {
-    await apiClient.delete(`/api/Account/delete-document/${documentId}`);
+export const suspendUser = async (userId: string): Promise<void> => {
+    console.log('Static suspendUser called for userId:', userId);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const user = db.users.find(u => u.id === userId);
+            if (user) {
+                user.status = 'Suspended';
+                console.log(`User ${userId} suspended (simulated).`);
+            }
+            resolve();
+        }, 500);
+    });
 };
 
-/**
- * Verifies a user document (for admins).
- */
+export const getUsersList = async (): Promise<User[]> => {
+    console.log('Static getUsersList called');
+    return Promise.resolve(db.users);
+};
+
+export const getProfile = async (): Promise<UserProfile> => {
+    console.log('Static getProfile called');
+    // For demo, return a profile for the currently logged-in user if available, otherwise a generic one
+    // This would ideally be linked to the logged-in user's email from AuthContext
+    return Promise.resolve(db.userProfiles['user@demo.com'] || db.userProfiles['admin@demo.com']);
+};
+
+export const checkUserDocuments = async (userId?: string): Promise<RequiredDocument[]> => {
+    console.log('Static checkUserDocuments called for userId:', userId);
+    return Promise.resolve(db.requiredDocuments['user@demo.com'] || []);
+};
+
+export const uploadDocument = async (formData: FormData): Promise<void> => {
+    console.log('Static uploadDocument called with formData:', Object.fromEntries(formData.entries()));
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const email = formData.get('Email') as string;
+            const docType = parseInt(formData.get('DocumentType') as string);
+            const file = formData.get('File') as File;
+
+            if (email && db.requiredDocuments[email]) {
+                const doc = db.requiredDocuments[email].find(d => d.documentType === docType);
+                if (doc) {
+                    doc.isUploaded = true;
+                    doc.isVerified = false; // Needs verification after upload
+                    console.log(`Document ${doc.documentName} uploaded for ${email} (simulated).`);
+                }
+            }
+            resolve();
+        }, 500);
+    });
+};
+
+export const deleteDocument = async (documentId: number): Promise<void> => {
+    console.log('Static deleteDocument called for documentId:', documentId);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // This would need to know which user's document to delete
+            // For simplicity, just log for now
+            console.log(`Document ${documentId} deleted (simulated).`);
+            resolve();
+        }, 500);
+    });
+};
+
 export const verifyUserDocument = async (payload: { documentId: number; isApproved: boolean; notes: string }): Promise<any> => {
-    const { data } = await apiClient.put('/api/Account/verify-user-document', payload);
-    return data;
+    console.log('Static verifyUserDocument called with:', payload);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // This would need to know which user's document to verify
+            // For simplicity, just log for now
+            console.log(`Document ${payload.documentId} verified: ${payload.isApproved} (simulated).`);
+            resolve({ success: true, message: 'Document verification simulated.' });
+        }, 500);
+    });
 };

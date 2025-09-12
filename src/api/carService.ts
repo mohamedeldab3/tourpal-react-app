@@ -1,6 +1,5 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
-// Define the types that will be used across the application
 export interface CarImage {
     id: string;
     imageUrl: string;
@@ -14,10 +13,9 @@ export interface Car {
     year: number;
     pricePerDay: number;
     description: string;
-    status?: string; // Added status as it is used in the dashboard
+    status?: string;
     carImages?: CarImage[];
     features?: string[];
-    // Add other properties from the API as needed
 }
 
 export interface CarListItem {
@@ -42,57 +40,69 @@ export interface NewCarData {
     featureIds: number[];
 }
 
+import { db } from '../data/staticDb'; // Import the static database
 
-// ✅ FIX: Added 'export' before each function to make them available for import.
-
-/**
- * Fetches a list of cars for public view (like the search page).
- */
 export const getCarsList = async (): Promise<CarListItem[]> => {
-    const response = await apiClient.get('/api/TourismCompany/cars-list');
-    
-    // Defensive check for the response structure
-    if (response.data && Array.isArray(response.data.data)) {
-        return response.data.data;
-    }
-    
-    // Handle cases where the data might be directly in the response
-    if (Array.isArray(response.data)) {
-        return response.data;
-    }
-
-    // If the structure is unexpected, log it and return an empty array to prevent crashing
-    console.error("Unexpected API response structure for getCarsList:", response.data);
-    return [];
+    console.log('Static getCarsList called');
+    return Promise.resolve(db.cars.map(car => ({
+        id: car.id,
+        brand: car.brand,
+        model: car.model,
+        year: car.year,
+        pricePerDay: car.pricePerDay,
+        carImages: car.carImages,
+    })));
 };
 
-/**
- * Fetches detailed information for a single car.
- */
 export const getCarDetails = async (id: string): Promise<Car> => {
-    const response = await apiClient.get(`/api/TourismCompany/cars/${id}`);
-    return response.data;
+    console.log(`Static getCarDetails called for id: ${id}`);
+    const car = db.cars.find(c => c.id === id);
+    if (car) {
+        return Promise.resolve(car);
+    }
+    return Promise.reject(new Error('Car not found'));
 };
 
-/**
- * Fetches the list of cars belonging to the currently logged-in provider.
- */
 export const getProviderCars = async (): Promise<Car[]> => {
-    const response = await apiClient.get('/api/TransProvider/cars');
-    return response.data;
+    console.log('Static getProviderCars called');
+    // For demo, return all static cars as if they belong to the provider
+    return Promise.resolve(db.cars);
 };
 
-/**
- * Adds a new car for a provider.
- */
 export const addCar = async (carData: NewCarData): Promise<Car> => {
-    const response = await apiClient.post('/api/TransProvider/cars', carData);
-    return response.data;
+    console.log('Static addCar called with:', carData);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const newCar: Car = {
+                id: `car-${db.cars.length + 1}`, // Generate a new ID
+                brand: carData.brand,
+                model: carData.model,
+                year: carData.year,
+                pricePerDay: carData.pricePerDay,
+                description: carData.description,
+                status: 'Available',
+                carImages: [], // No images for new car in static demo
+                features: [], // No features for new car in static demo
+            };
+            db.cars.push(newCar);
+            console.log('Car added (simulated) and added to DB:', newCar);
+            resolve(newCar);
+        }, 500);
+    });
 };
 
-/**
- * Deletes a car by its ID.
- */
 export const deleteCar = async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/TransProvider/cars/${id}`);
+    console.log(`Static deleteCar called for id: ${id}`);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const initialLength = db.cars.length;
+            db.cars = db.cars.filter(car => car.id !== id);
+            if (db.cars.length < initialLength) {
+                console.log(`Car ${id} deleted (simulated).`);
+            } else {
+                console.log(`Car ${id} not found for deletion (simulated).`);
+            }
+            resolve();
+        }, 500);
+    });
 };

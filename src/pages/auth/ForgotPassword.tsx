@@ -19,7 +19,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await forgotPassword(email);
-      if (response.statusCode === 0) {
+      if (response.success) {
         setMessage('If an account with that email exists, a password reset link has been sent.');
       } else {
         setError(response.message || 'An unexpected error occurred.');

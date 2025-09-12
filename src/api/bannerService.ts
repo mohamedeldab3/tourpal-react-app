@@ -1,6 +1,5 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
-// واجهة لبيانات الإعلان عند الإنشاء
 export interface AdvertisementCreateDto {
     title: string;
     description?: string;
@@ -11,7 +10,6 @@ export interface AdvertisementCreateDto {
     endDate: string;
 }
 
-// واجهة لبيانات الإعلان المعروض
 export interface AdvertisementDto {
     id: string;
     title: string;
@@ -24,7 +22,6 @@ export interface AdvertisementDto {
     status: number; // AdStatus Enum
 }
 
-// واجهة لبيانات اللافتة (Banner) المعروضة في الصفحة الرئيسية
 export interface BannerDto {
     id: string;
     title: string;
@@ -32,48 +29,50 @@ export interface BannerDto {
     linkUrl: string;
 }
 
-/**
- * دالة لإنشاء طلب إعلان جديد
- */
+import { db } from '../data/staticDb'; // Import the static database
+
 export const createAdvertisement = async (data: AdvertisementCreateDto): Promise<any> => {
-    const formData = new FormData();
-    formData.append('title', data.title);
-    formData.append('image', data.image);
-    formData.append('position', data.position.toString());
-    formData.append('startDate', data.startDate);
-    formData.append('endDate', data.endDate);
-    if (data.description) formData.append('description', data.description);
-    if (data.targetUrl) formData.append('targetUrl', data.targetUrl);
-
-    // ملاحظة: يتم إرسال البيانات كـ multipart/form-data بسبب وجود ملف الصورة
-    const response = await apiClient.post('/api/Banner/create-banner', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
+    console.log('Static createAdvertisement called with:', data);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const newAd: AdvertisementDto = {
+                id: `ad-${db.advertisements.length + 1}`,
+                title: data.title,
+                description: data.description || '',
+                imagePath: URL.createObjectURL(data.image), // Create a URL for the image file
+                targetUrl: data.targetUrl || '',
+                position: data.position,
+                startDate: data.startDate,
+                endDate: data.endDate,
+                status: 1, // Always pending for new ads
+            };
+            db.advertisements.push(newAd);
+            console.log('Advertisement created (simulated) and added to DB:', newAd);
+            resolve({ success: true, message: 'Advertisement creation simulated.' });
+        }, 500);
     });
-    return response.data;
 };
 
-/**
- * دالة لجلب اللافتات (Banners) النشطة لعرضها في الموقع
- */
 export const getBanners = async (): Promise<BannerDto[]> => {
-    const response = await apiClient.get('/api/Banner/get-banners');
-    return response.data;
+    console.log('Static getBanners called');
+    return Promise.resolve(db.banners);
 };
 
-/**
- * دالة (للأدمن) لجلب الإعلانات التي تنتظر المراجعة
- */
 export const getPendingAdvertisements = async (): Promise<AdvertisementDto[]> => {
-    const response = await apiClient.get('/api/Banner/advertisements');
-    return response.data;
+    console.log('Static getPendingAdvertisements called');
+    return Promise.resolve(db.advertisements.filter(ad => ad.status === 1)); // Filter for pending ads
 };
 
-/**
- * دالة (للأدمن) للموافقة على إعلان أو رفضه
- */
 export const handleAdvertisement = async (adId: string, isApproved: boolean, reason?: string): Promise<any> => {
-    const response = await apiClient.post(`/api/Banner/advertisements/${adId}/handle`, { isApproved, reason });
-    return response.data;
+    console.log(`Static handleAdvertisement called for adId: ${adId}, isApproved: ${isApproved}, reason: ${reason}`);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            const ad = db.advertisements.find(a => a.id === adId);
+            if (ad) {
+                ad.status = isApproved ? 2 : 3; // 2 for Approved, 3 for Rejected
+                console.log(`Advertisement ${adId} status updated to ${ad.status} (simulated).`);
+            }
+            resolve({ success: true, message: 'Advertisement handling simulated.' });
+        }, 500);
+    });
 };

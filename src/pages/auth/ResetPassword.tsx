@@ -42,7 +42,7 @@ const ResetPassword = () => {
 
     try {
       const response = await resetPassword({ email, token, newPassword });
-      if (response.statusCode === 0) {
+      if (response.success) {
         setMessage('Your password has been reset successfully. You can now log in.');
         setTimeout(() => navigate('/login'), 3000);
       } else {

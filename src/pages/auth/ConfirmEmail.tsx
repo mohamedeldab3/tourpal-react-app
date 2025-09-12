@@ -16,7 +16,7 @@ const ConfirmEmail = () => {
     if (email && code) {
       confirmEmail(email, code)
         .then(response => {
-          if (response.statusCode === 0) {
+          if (response.success) {
             setMessage('Your email has been confirmed successfully! You can now log in.');
           } else {
             setMessage(response.message || 'An error occurred during email confirmation.');

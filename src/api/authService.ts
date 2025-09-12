@@ -1,6 +1,6 @@
-import apiClient from "./apiClient";
+// @ts-nocheck
 
-// تعريف أنواع البيانات للمستخدم بناءً على ما هو موجود في AuthContext
+// Define user types based on what's in AuthContext
 interface User {
   id: string;
   fullName: string;
@@ -8,133 +8,93 @@ interface User {
   userType: "user" | "provider" | "admin";
 }
 
-// تعريف أنواع البيانات للمدخلات والمخرجات
+// Define payload types
 interface LoginPayload {
   email: string;
   password: string;
-  rememberMe: boolean;
-}
-
-interface LoginResponse {
-  user: User;
-  token: string;
 }
 
 interface RegisterPayload {
   FullName: string;
   Email: string;
   Password: string;
-  UserType: number;
-  Phone: string;
-  CityId: string;
-  CompanyName?: string;
-  EmailCodeNo?: string;
-  IsEmailConfirmed?: boolean;
-  IsCompany?: boolean;
-  Address?: string;
+  // ... other fields
 }
 
-/**
- * إرسال طلب تسجيل الدخول إلى الـ API.
- * @param credentials بيانات الدخول (الإيميل وكلمة المرور).
- * @returns Promise يحتوي على بيانات المستخدم والـ token.
- */
-export const login = async (
-  credentials: LoginPayload
-): Promise<LoginResponse> => {
-  try {
-    console.log('Login Request:', {
-      email: credentials.email,
-      rememberMe: credentials.rememberMe
-    });
+import { db } from '../data/staticDb'; // Import the static database
 
-    const { data } = await apiClient.post("/api/Account/login", {
-      email: credentials.email,
-      password: credentials.password,
-      rememberMe: credentials.rememberMe
-    });
+export const login = async (credentials: LoginPayload): Promise<{ user: User; token: string }> => {
+  console.log('Static login attempt with:', credentials.email);
 
-    console.log('Raw API Response:', data);
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const user = db.users.find(u => u.email === credentials.email); // Use db.users
 
-    // Check if the response indicates a failed login
-    if (!data.success && data.message) {
-      throw new Error(data.message);
-    }
-
-    // Check if we have the necessary data
-    if (!data.token || !data.user) {
-      throw new Error('Invalid response format from server');
-    }
-
-    const response: LoginResponse = {
-      token: data.token,
-      user: {
-        id: data.user.id || data.user.userId,
-        fullName: data.user.fullName || data.user.name,
-        email: data.user.email,
-        userType: (data.user.userType || 'user').toLowerCase() as "user" | "provider" | "admin"
+      if (user && credentials.password === 'password123') { // Password is still hardcoded for demo
+        console.log('Login successful for:', user.email);
+        resolve({
+          user,
+          token: `fake-token-for-${user.email}`,
+        });
+      } else {
+        console.log('Login failed for:', credentials.email);
+        reject(new Error('Invalid email or password'));
       }
-    };
-
-    console.log('Transformed Response:', response);
-    return response;
-  } catch (error: any) {
-    console.error('Login Error:', error.response?.data || error);
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message);
-    }
-    throw error;
-  }
+    }, 500);
+  });
 };
 
-/**
- * إرسال طلب تسجيل حساب جديد إلى الـ API.
- * @param userData بيانات المستخدم الجديد.
- * @returns Promise يحتوي على استجابة الـ API.
- */
 export const register = async (userData: RegisterPayload) => {
-  const formData = new FormData();
+  console.log('Static registration attempt with:', userData);
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulate adding new user to the database
+      const newUser: User = {
+        id: `user-${db.users.length + 1}`, // Simple ID generation
+        fullName: userData.FullName,
+        email: userData.Email,
+        userType: 'user', // Default to 'user' for new registrations
+        status: 'Active',
+      };
+      db.users.push(newUser);
+      db.userProfiles[newUser.email] = { // Add a basic profile
+        id: newUser.id,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        phoneNumber: '',
+        companyName: '',
+        address: '',
+        city: { id: '1', name: 'Cairo' }, // Default city
+        documents: [],
+      };
 
-  // Append all fields to FormData
-  Object.entries(userData).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      formData.append(key, value.toString());
-    }
+      console.log('User registered (simulated) and added to DB:', newUser.email);
+      resolve({ success: true, message: 'Registration successful! Please log in.' });
+    }, 500);
   });
-
-  const { data } = await apiClient.post("/api/Account/register", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return data;
 };
 
 export const forgotPassword = async (email: string) => {
-  const { data } = await apiClient.post("/api/Account/forgot-password", {
-    email,
-    baseLink: `${window.location.origin}/reset-password`,
-    language: 0,
-  });
-  return data;
+  console.log(`Static forgot password for: ${email}`);
+  return Promise.resolve({ success: true, message: 'If an account with this email exists, a password reset link has been sent.' });
 };
 
-export const resetPassword = async (payload: { email: string; token: string; newPassword: string }) => {
-  const { data } = await apiClient.post("/api/Account/reset-password", payload);
-  return data;
+export const resetPassword = async (payload: any) => {
+  console.log(`Static password reset for: ${payload.email}`);
+  return Promise.resolve({ success: true, message: 'Password has been reset successfully.' });
 };
 
-export const changePassword = async (payload: { currentPassword: string; newPassword: string }) => {
-    const { data } = await apiClient.post("/api/Account/change-password", payload);
-    return data;
+export const changePassword = async (payload: any) => {
+    console.log(`Static password change`);
+    return Promise.resolve({ success: true, message: 'Password has been changed successfully.' });
 };
 
 export const sendEmailConfirmation = async (email: string) => {
-  const { data } = await apiClient.post(`/api/Account/send-email-confirmation?email=${email}&language=0`);
-  return data;
+  console.log(`Static email confirmation sent to: ${email}`);
+  return Promise.resolve({ success: true, message: 'Confirmation email sent.' });
 };
 
 export const confirmEmail = async (email: string, code: string) => {
-  const { data } = await apiClient.get(`/api/Account/confirm-email?email=${email}&code=${code}`);
-  return data;
+  console.log(`Static email confirmation for: ${email} with code ${code}`);
+  return Promise.resolve({ success: true, message: 'Email confirmed successfully.' });
 };

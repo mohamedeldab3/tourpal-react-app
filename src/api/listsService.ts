@@ -1,4 +1,4 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
 export interface BasicListDto {
   id: number;
@@ -11,63 +11,42 @@ export interface RequiredDoc {
   isMandatory: boolean;
 }
 
-export const getCities = async (lang: number): Promise<BasicListDto[]> => {
-  const response = await apiClient.get(`/api/Lists/GetCities?lang=${lang}`);
-  return response.data;
-};
+import { db } from '../data/staticDb'; // Import the static database
 
-const userTypeTranslations: { [key: string]: string } = {
-  "شركة نقل سياحي": "Tourism Transport Company",
-  "مالك سيارة": "Car Owner",
-  "مرشد سياحي": "Tour Guide",
-  "شركة سياحه": "Tourism Company",
-  "شركة سياحة": "Tourism Company", // Added with 'ة' for robustness
-  "مستخدم عادي": "Regular User",
-  "عميل": "Client",
-  "مزود خدمة": "Service Provider",
-  "مشرف نظام": "System Admin",
+export const getCities = async (lang: number): Promise<BasicListDto[]> => {
+  console.log(`Static getCities called with lang: ${lang}`);
+  return Promise.resolve(db.cities);
 };
 
 export const getUserTypes = async (): Promise<BasicListDto[]> => {
-  const response = await apiClient.get('/api/Lists/GetUserTypes');
-  const translatedUserTypes = response.data
-    .map((userType: BasicListDto) => ({
-      ...userType,
-      name: userTypeTranslations[userType.name] || userType.name,
-    }))
-    .filter((userType: BasicListDto) => userType.name !== 'System Admin');
-  return translatedUserTypes;
+  console.log('Static getUserTypes called');
+  return Promise.resolve(db.userTypes);
 };
 
 export const getRequiredDocumentsPerUserType = async (userType: number, lang: number = 0): Promise<RequiredDoc[]> => {
-  const response = await apiClient.get(`/api/Lists/RequiredDocumentsPerUserType?userType=${userType}&lang=${lang}`);
-  return response.data;
+  console.log(`Static getRequiredDocumentsPerUserType called for userType: ${userType}, lang: ${lang}`);
+  // Simplify: return all static docs for any user type for demo purposes
+  return Promise.resolve(db.requiredDocsTemplates);
 };
 
 export const getCarTypes = async (): Promise<BasicListDto[]> => {
-  const response = await apiClient.get('/api/Lists/GetCarTypesList');
-  return response.data;
+  console.log('Static getCarTypes called');
+  return Promise.resolve(db.carTypes);
 };
 
-// alias: اسم إضافي يصدّر نفس الدالة بالاسم اللي يستورده CarForm.tsx
-export const getCarTypesList = getCarTypes;
+export const getCarTypesList = getCarTypes; // alias
 
 export const getCarFeatures = async (): Promise<BasicListDto[]> => {
-  const response = await apiClient.get('/api/Lists/GetCarFeatures');
-  return response.data;
+  console.log('Static getCarFeatures called');
+  return Promise.resolve(db.carFeatures);
 };
 
 export const getDocumentsTypes = async (): Promise<BasicListDto[]> => {
-  const response = await apiClient.get('/api/Lists/GetDocumentsTypes');
-  return response.data;
+  console.log('Static getDocumentsTypes called');
+  return Promise.resolve(db.documentTypes);
 };
 
 export const getAdvPostionsList = async (): Promise<BasicListDto[]> => {
-  try {
-    const response = await apiClient.get('/api/Lists/GetAdvPostionsList');
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching advertisement positions:", error);
-    throw error;
-  }
+  console.log('Static getAdvPostionsList called');
+  return Promise.resolve(db.advPositions);
 };

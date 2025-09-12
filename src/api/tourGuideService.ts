@@ -1,6 +1,5 @@
-import apiClient from './apiClient';
+// @ts-nocheck
 
-// ... (الواجهات السابقة: TourGuide, TourGuideDetails)
 export interface TourGuide {
     id: string;
     fullName: string;
@@ -14,50 +13,39 @@ export interface TourGuideDetails extends TourGuide {
     bio: string;
 }
 
-// واجهة جديدة لبيانات طلب المرشد السياحي
 export interface RequestTourGuidePayload {
     tourGuideId: string;
     startDate: string;
     endDate: string;
     requestNotes: string;
-    requiredLanguageId: number; // ملاحظة: ה-API يتطلب ID للغة، سنستخدم قيمة افتراضية الآن
+    requiredLanguageId: number;
 }
 
+import { db } from '../data/staticDb'; // Import the static database
 
-// ... (الدوال السابقة: getTourGuidesList, getTourGuideDetails)
 export const getTourGuidesList = async (): Promise<TourGuide[]> => {
-    try {
-        const response = await apiClient.get('/api/TourismCompany/tour-guide-list');
-        return response.data; 
-    } catch (error) {
-        console.error('Error fetching tour guides list:', error);
-        throw error;
-    }
+    console.log('Static getTourGuidesList called');
+    return Promise.resolve(db.tourGuides);
 };
 
 export const getTourGuideDetails = async (id: string): Promise<TourGuideDetails> => {
-    try {
-        const response = await apiClient.get(`/api/TourismCompany/tour-guide-details/${id}`);
-        return response.data;
-    } catch (error) {
-        console.error(`Error fetching details for tour guide ${id}:`, error);
-        throw error;
+    console.log(`Static getTourGuideDetails called for id: ${id}`);
+    const guide = db.tourGuides.find(g => g.id === id);
+    if (guide) {
+        // For simplicity, return a generic bio for any found guide
+        return Promise.resolve({ ...guide, bio: db.tourGuideDetails[0]?.bio || 'No bio available.' });
     }
+    return Promise.reject(new Error('Tour guide not found'));
 };
 
-
-/**
- * دالة جديدة لإرسال طلب حجز لمرشد سياحي
- * @param {RequestTourGuidePayload} payload - بيانات الطلب
- * @returns {Promise<any>} رد الـ API
- */
 export const requestTourGuide = async (payload: RequestTourGuidePayload): Promise<any> => {
-    try {
-        const response = await apiClient.post('/api/TourismCompany/request-tour-guide', payload);
-        return response.data;
-    } catch (error) {
-        console.error('Error creating tour guide request:', error);
-        throw error;
-    }
+    console.log('Static requestTourGuide called with:', payload);
+    return new Promise(resolve => {
+        setTimeout(() => {
+            // Simulate adding a request to a list (e.g., in db.bookings or a new db.tourGuideRequests)
+            // For now, just log and resolve
+            console.log('Tour guide request simulated and added to DB (conceptually).');
+            resolve({ success: true, message: 'Tour guide request simulated.' });
+        }, 500);
+    });
 };
-
