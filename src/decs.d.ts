@@ -1,4 +1,4 @@
-declare module 'src/components/LiquidEther/LiquidEther.jsx' {
+declare module '../components/LiquidEther/LiquidEther' {
     const LiquidEther: any;
     export default LiquidEther;
 }

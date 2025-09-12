@@ -6,7 +6,7 @@ import { uploadDocument } from '../../api/userService';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import { toast } from "sonner"; // Import toast
-
+import AuthLayout from '../../layouts/AuthLayout';
 
 interface UserType {
   id: number;
@@ -132,50 +132,47 @@ const RegisterStep2 = () => {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
+        <AuthLayout>
+            <h2 className="text-3xl font-bold text-gray-900 text-center">Final Step</h2>
+            {error && <p className="text-red-500 bg-red-100 p-3 rounded-md my-4">{error}</p>}
             
-            <div className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-lg p-8 z-10"> {/* Added z-10 */}
-                <h2 className="text-3xl font-bold text-gray-900 text-center">Final Step</h2>
-                {error && <p className="text-red-500 bg-red-100 p-3 rounded-md my-4">{error}</p>}
-                
-                {isCarOwner && (
-                    <div className="mt-6">
-                        <h3 className="text-xl font-bold mb-4">Car Details</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label htmlFor="car-type">Car Type <span className="text-red-500">*</span></label>
-                                <select id="car-type" name="CarTypeId" value={carDetails.CarTypeId} onChange={handleCarDetailsChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md">
-                                    <option value="" disabled>Select car type</option>
-                                    {carTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-                                </select>
-                            </div>
-                            <Input label="Car License Number" id="car-license" name="CarLicense" type="text" value={carDetails.CarLicense} onChange={handleCarDetailsChange} required />
-                        </div>
-                    </div>
-                )}
-
+            {isCarOwner && (
                 <div className="mt-6">
-                    <h3 className="text-xl font-bold mb-4">Required Documents</h3>
-                    <div className="space-y-4">
-                        {requiredDocs.map(doc => (
-                            <div key={doc.id} className="p-4 border border-gray-200 rounded-lg">
-                                <label htmlFor={`file-${doc.id}`} className="font-medium">
-                                    {doc.name} {doc.isMandatory && <span className="text-red-500">*</span>}
-                                </label>
-                                <input id={`file-${doc.id}`} type="file" onChange={(e) => handleFileChange(doc.id, e)} className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
-                                />
-                            </div>
-                        ))}
+                    <h3 className="text-xl font-bold mb-4">Car Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="car-type">Car Type <span className="text-red-500">*</span></label>
+                            <select id="car-type" name="CarTypeId" value={carDetails.CarTypeId} onChange={handleCarDetailsChange} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md">
+                                <option value="" disabled>Select car type</option>
+                                {carTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
+                            </select>
+                        </div>
+                        <Input label="Car License Number" id="car-license" name="CarLicense" type="text" value={carDetails.CarLicense} onChange={handleCarDetailsChange} required />
                     </div>
                 </div>
+            )}
 
-                <div className="mt-8 text-center">
-                    <Button onClick={handleSubmit} disabled={isRegistering || !areMandatoryFieldsFilled()}>
-                        {isRegistering ? 'Registering...' : 'Complete Registration'}
-                    </Button>
+            <div className="mt-6">
+                <h3 className="text-xl font-bold mb-4">Required Documents</h3>
+                <div className="space-y-4">
+                    {requiredDocs.map(doc => (
+                        <div key={doc.id} className="p-4 border border-gray-200 rounded-lg">
+                            <label htmlFor={`file-${doc.id}`} className="font-medium">
+                                {doc.name} {doc.isMandatory && <span className="text-red-500">*</span>}
+                            </label>
+                            <input id={`file-${doc.id}`} type="file" onChange={(e) => handleFileChange(doc.id, e)} className="mt-2 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                            />
+                        </div>
+                    ))}
                 </div>
             </div>
-        </div>
+
+            <div className="mt-8 text-center">
+                <Button onClick={handleSubmit} disabled={isRegistering || !areMandatoryFieldsFilled()}>
+                    {isRegistering ? 'Registering...' : 'Complete Registration'}
+                </Button>
+            </div>
+        </AuthLayout>
     );
 };
 

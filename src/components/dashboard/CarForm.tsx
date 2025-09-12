@@ -5,13 +5,6 @@ import Input from '../ui/Input';
 import Button from '../ui/Button';
 import { toast } from "sonner"; // Import toast
 
-import React, { useState, useEffect } from 'react';
-// FIX: Corrected the function names to match the exports in the service files
-import { getCarTypesList, getCarFeatures, getCities, BasicListDto } from '../../api/listsService';
-import Input from '../ui/Input';
-import Button from '../ui/Button';
-import { toast } from "sonner"; // Import toast
-
 export interface CarFormData {
     brand: string;
     model: string;

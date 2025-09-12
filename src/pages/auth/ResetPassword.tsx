@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { resetPassword } from '../../api/authService';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-
+import AuthLayout from '../../layouts/AuthLayout';
 
 const ResetPassword = () => {
   const [token, setToken] = useState('');
@@ -56,49 +56,46 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      
-      <div className="w-full max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 z-10">
-        <h2 className="text-3xl font-bold text-gray-900 text-center">Reset Password</h2>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <Input
-            label="New Password"
-            id="new-password"
-            name="newPassword"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-          />
-          <Input
-            label="Confirm New Password"
-            id="confirm-password"
-            name="confirmPassword"
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
+    <AuthLayout>
+      <h2 className="text-3xl font-bold text-gray-900 text-center">Reset Password</h2>
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <Input
+          label="New Password"
+          id="new-password"
+          name="newPassword"
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+        />
+        <Input
+          label="Confirm New Password"
+          id="confirm-password"
+          name="confirmPassword"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
 
-          {message && <p className="text-green-500 text-center">{message}</p>}
-          {error && <p className="text-red-500 text-center">{error}</p>}
+        {message && <p className="text-green-500 text-center">{message}</p>}
+        {error && <p className="text-red-500 text-center">{error}</p>}
 
-          <div>
-            <Button type="submit" className="w-full" disabled={isLoading || !token}>
-              {isLoading ? 'Resetting...' : 'Reset Password'}
-            </Button>
+        <div>
+          <Button type="submit" className="w-full" disabled={isLoading || !token}>
+            {isLoading ? 'Resetting...' : 'Reset Password'}
+          </Button>
+        </div>
+
+        {message && (
+          <div className="text-center mt-4">
+            <Link to="/login" className="font-medium text-purple-600 hover:text-purple-500">
+              Back to Login
+            </Link>
           </div>
-
-          {message && (
-            <div className="text-center mt-4">
-              <Link to="/login" className="font-medium text-purple-600 hover:text-purple-500">
-                Back to Login
-              </Link>
-            </div>
-          )}
-        </form>
-      </div>
-    </div>
+        )}
+      </form>
+    </AuthLayout>
   );
 };
 

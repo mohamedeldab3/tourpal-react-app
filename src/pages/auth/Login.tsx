@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { login as apiLogin, sendEmailConfirmation } from "../../api/authService";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
-
+import AuthLayout from "../../layouts/AuthLayout";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -78,103 +78,88 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */}
-      
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> {/* Added z-10 */}
-        <div
-          className="hidden md:block w-1/2 bg-cover bg-center rounded-l-xl"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-          }}
-        ></div>
+    <AuthLayout>
+      <h2 className="text-3xl font-bold text-gray-900 text-center">
+        Welcome Back!
+      </h2>
+      <p className="mt-2 text-center text-gray-600">
+        Don't have an account?{" "}
+        <Link
+          to="/register"
+          className="font-medium text-purple-600 hover:text-purple-500"
+        >
+          Sign up
+        </Link>
+      </p>
 
-        <div className="w-full md:w-1/2 p-8 md:p-12">
-          <h2 className="text-3xl font-bold text-gray-900 text-center">
-            Welcome Back!
-          </h2>
-          <p className="mt-2 text-center text-gray-600">
-            Don't have an account?{" "}
+      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <Input
+          label="Email address"
+          id="email-address"
+          name="email"
+          type="email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+
+        <Input
+          label="Password"
+          id="password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              name="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+            />
+            <label
+              htmlFor="remember-me"
+              className="ml-2 block text-sm text-gray-900"
+            >
+              Remember me
+            </label>
+          </div>
+          <div className="text-sm">
             <Link
-              to="/register"
+              to="/forgot-password"
               className="font-medium text-purple-600 hover:text-purple-500"
             >
-              Sign up
+              Forgot your password?
             </Link>
-          </p>
-
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <Input
-              label="Email address"
-              id="email-address"
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Password"
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="ml-2 block text-sm text-gray-900"
-                >
-                  Remember me
-                </label>
-              </div>
-              <div className="text-sm">
-                <Link
-                  to="/forgot-password"
-                  className="font-medium text-purple-600 hover:text-purple-500"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-            </div>
-            {error && <p className="text-red-500 text-center">{error}</p>}
-
-            {emailNotConfirmed && (
-              <div className="text-center mt-4">
-                <Button onClick={handleResendConfirmation} disabled={isLoading} className="text-sm">
-                  {isLoading ? 'Sending...' : 'Resend Confirmation Email'}
-                </Button>
-                {resendMessage && <p className="text-sm text-gray-600 mt-2">{resendMessage}</p>}
-              </div>
-            )}
-
-            <div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
-            </div>
-          </form>
+          </div>
         </div>
-      </div>
-    </div>
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        {emailNotConfirmed && (
+          <div className="text-center mt-4">
+            <Button onClick={handleResendConfirmation} disabled={isLoading} className="text-sm">
+              {isLoading ? 'Sending...' : 'Resend Confirmation Email'}
+            </Button>
+            {resendMessage && <p className="text-sm text-gray-600 mt-2">{resendMessage}</p>}
+          </div>
+        )}
+
+        <div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Signing in..." : "Sign In"}
+          </Button>
+        </div>
+      </form>
+    </AuthLayout>
   );
 };
 
 export default Login;
-
-  
