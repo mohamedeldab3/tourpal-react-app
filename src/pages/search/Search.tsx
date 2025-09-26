@@ -44,7 +44,7 @@ const Search: React.FC = () => {
                 {cars.map(car => (
                     <div key={car.id} className="bg-white rounded-lg shadow-md overflow-hidden group">
                         <img 
-                            src={car.carImages?.[0]?.imageUrl || 'https://placehold.co/600x400/EEE/31343C?text=No+Image'} 
+                            src={car.carImages?.[0]?.imageUrl || 'https://images.unsplash.com/photo-1568605117036-5fe5e7185743?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} 
                             alt={`${car.brand} ${car.model}`} 
                             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" 
                         />

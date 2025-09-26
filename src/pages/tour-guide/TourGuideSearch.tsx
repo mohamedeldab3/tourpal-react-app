@@ -40,7 +40,7 @@ const TourGuideSearch: React.FC = () => {
                 {guides.map(guide => (
                     <div key={guide.id} className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300">
                         <img 
-                            src={guide.profilePictureUrl || `https://placehold.co/400x400/E2E8F0/4A5568?text=${guide.fullName.charAt(0)}`} 
+                            src={guide.profilePictureUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} 
                             alt={guide.fullName} 
                             className="w-full h-64 object-cover" 
                         />

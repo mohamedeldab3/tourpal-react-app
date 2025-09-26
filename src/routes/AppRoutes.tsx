@@ -60,7 +60,7 @@ const AppRoutes: React.FC = () => {
         <Route path="admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
         <Route path="client" element={<ProtectedRoute allowedRoles={['user']}><ClientDashboard /></ProtectedRoute>} /> {/* New Client Dashboard Route */}
         <Route path="profile" element={<Profile />} />
-        <Route path="create-ad" element={<ProtectedRoute allowedRoles={['provider']}><CreateAdvertisement /></ProtectedRoute>} /> {/* إضافة المسار الجديد */}
+        <Route path="create-ad" element={<ProtectedRoute allowedRoles={['user', 'provider']}><CreateAdvertisement /></ProtectedRoute>} /> {/* إضافة المسار الجديد */}
       </Route>
     </Routes>
   );

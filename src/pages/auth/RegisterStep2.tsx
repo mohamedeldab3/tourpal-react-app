@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getRequiredDocumentsPerUserType, getCarTypesList, getUserTypes, RequiredDoc, BasicListDto } from '../../api/listsService';
 import { register } from '../../api/authService';
 import { uploadDocument } from '../../api/userService';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
-import { toast } from "sonner"; // Import toast
+import { toast } from "sonner";
 import AuthLayout from '../../layouts/AuthLayout';
 
 interface UserType {
@@ -21,15 +21,14 @@ const RegisterStep2 = () => {
     const [requiredDocs, setRequiredDocs] = useState<RequiredDoc[]>([]);
     const [files, setFiles] = useState<{ [key: number]: File | null }>({});
     const [carTypes, setCarTypes] = useState<BasicListDto[]>([]);
-    const [userTypes, setUserTypes] = useState<UserType[]>([]); // New state for user types
+    const [userTypes, setUserTypes] = useState<UserType[]>([]);
     const [carDetails, setCarDetails] = useState({ CarTypeId: '', CarLicense: '' });
     const [isLoading, setIsLoading] = useState(true);
     const [isRegistering, setIsRegistering] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Dynamically find Car Owner UserType ID
-    const carOwnerTypeId = userTypes.find(type => type.name === 'Car Owner')?.id;
-    const isCarOwner = registrationData?.UserType === carOwnerTypeId;
+    const carOwnerTypeId = useMemo(() => userTypes.find(type => type.name === 'Car Owner')?.id, [userTypes]);
+    const isCarOwner = useMemo(() => registrationData?.UserType === carOwnerTypeId, [registrationData, carOwnerTypeId]);
 
     useEffect(() => {
         if (!registrationData) {
@@ -39,14 +38,14 @@ const RegisterStep2 = () => {
 
         const fetchInitialData = async () => {
             try {
-                const fetchedUserTypes = await getUserTypes(); // Fetch user types
+                const fetchedUserTypes = await getUserTypes();
                 setUserTypes(fetchedUserTypes);
 
                 const docs = await getRequiredDocumentsPerUserType(registrationData.UserType);
                 setRequiredDocs(docs);
 
-                // Use the dynamically found carOwnerTypeId
-                if (registrationData.UserType === fetchedUserTypes.find(type => type.name === 'Car Owner')?.id) {
+                const carOwnerType = fetchedUserTypes.find(type => type.name === 'Car Owner');
+                if (registrationData.UserType === carOwnerType?.id) {
                     const types = await getCarTypesList();
                     setCarTypes(types);
                 }
@@ -58,7 +57,7 @@ const RegisterStep2 = () => {
         };
 
         fetchInitialData();
-    }, [registrationData, navigate]); // Removed isCarOwner from dependency array
+    }, [registrationData, navigate]);
 
     const handleFileChange = (docId: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -85,7 +84,7 @@ const RegisterStep2 = () => {
 
     const handleSubmit = async () => {
         if (!areMandatoryFieldsFilled()) {
-            toast.error('Please fill all mandatory fields and upload all required documents.'); // Use toast.error
+            toast.error('Please fill all mandatory fields and upload all required documents.');
             return;
         }
 
@@ -93,12 +92,9 @@ const RegisterStep2 = () => {
         setError(null);
 
         try {
-            // 1. Register the user (with car details if applicable)
-            // IMPORTANT: This assumes the backend `register` endpoint can handle these extra fields.
             const finalRegistrationData = isCarOwner ? { ...registrationData, ...carDetails } : registrationData;
             await register(finalRegistrationData);
 
-            // 2. Upload documents
             for (const docId in files) {
                 const file = files[docId];
                 if (file) {
@@ -110,12 +106,9 @@ const RegisterStep2 = () => {
                 }
             }
 
-            // 3. Navigate based on user type
-            const fetchedUserTypes = await getUserTypes();
-            const userType = fetchedUserTypes.find(type => type.name === 'User'); // Assuming 'User' is the client type name
-
-            if (userType && registrationData.UserType === userType.id) {
-                navigate('/login'); // Direct to login for regular users
+            const clientType = userTypes.find(type => type.name === 'Client');
+            if (registrationData.UserType === clientType?.id) {
+                navigate('/login');
             } else {
                 navigate('/please-confirm', { state: { email: registrationData.Email } });
             }

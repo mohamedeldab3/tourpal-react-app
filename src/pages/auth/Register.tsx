@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
@@ -6,6 +6,7 @@ import { getCities, getUserTypes } from "../../api/listsService";
 import { register } from "../../api/authService";
 import { toast } from "sonner"; // Import toast
 import LiquidEther from "../../components/LiquidEther/LiquidEther";
+import styles from "./Register.module.css";
 
 interface City {
   id: number;
@@ -22,9 +23,9 @@ const Register: React.FC = () => {
     FullName: "",
     Email: "",
     Password: "",
-    UserType: 1,
+    UserType: undefined as number | undefined,
     Phone: "",
-    CityId: "",
+    CityId: undefined as number | undefined,
     CompanyName: "",
     Address: "",
   });
@@ -34,12 +35,6 @@ const Register: React.FC = () => {
   const [clientUserTypeId, setClientUserTypeId] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
-  // Dynamically find UserType IDs
-  
-  const companyTypeIds = userTypes.filter(type => 
-    type.name === 'Tourism Transport Company' || type.name === 'Tourism Company'
-  ).map(type => type.id);
-
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -47,9 +42,6 @@ const Register: React.FC = () => {
         const userTypesData = await getUserTypes();
         setCities(citiesData);
         setUserTypes(userTypesData);
-        if (userTypesData.length > 0) {
-          setFormData(prev => ({ ...prev, UserType: userTypesData[0].id }));
-        }
         const clientType = userTypesData.find(type => type.name === 'Client');
         if (clientType) {
           setClientUserTypeId(clientType.id);
@@ -60,6 +52,11 @@ const Register: React.FC = () => {
     };
     fetchInitialData();
   }, []);
+
+  const companyTypeIds = useMemo(() => 
+    userTypes.filter(type => 
+      type.name === 'Tourism Transport Company' || type.name === 'Tourism Company'
+    ).map(type => type.id), [userTypes]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -77,7 +74,7 @@ const Register: React.FC = () => {
 
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "UserType" || name === "CityId" ? parseInt(value, 10) : value,
+      [name]: name === "UserType" || name === "CityId" ? (value ? parseInt(value, 10) : undefined) : value,
     }));
   };
 
@@ -92,7 +89,7 @@ const Register: React.FC = () => {
       try {
         await register(formData);
         toast.success("Registration successful! Please check your email to confirm your account."); // Use toast.success
-        navigate('/login');
+        navigate('/please-confirm');
       } catch (error) {
         console.error("Client registration failed:", error);
         toast.error("Registration failed. Please try again."); // Use toast.error
@@ -126,11 +123,7 @@ const Register: React.FC = () => {
       </div>
       <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> {/* Added z-10 */} 
         <div
-          className="hidden md:block w-1/2 bg-cover bg-center rounded-l-xl"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-          }}
+          className={`hidden md:block w-1/2 bg-cover bg-center rounded-l-xl ${styles.registerBg}`}
         ></div>
 
         <div className="w-full md:w-1/2 p-8 md:p-12">
@@ -199,7 +192,7 @@ const Register: React.FC = () => {
               <select
                 id="city"
                 name="CityId"
-                value={formData.CityId}
+                value={formData.CityId || ''}
                 onChange={handleInputChange}
                 required
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
@@ -225,10 +218,14 @@ const Register: React.FC = () => {
               <select
                 id="user-type"
                 name="UserType"
-                value={formData.UserType}
+                value={formData.UserType || ''}
                 onChange={handleInputChange}
+                required
                 className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-md"
               >
+                <option value="" disabled>
+                  Select an account type
+                </option>
                 {userTypes.map((type) => (
                   <option key={type.id} value={type.id}>
                     {type.name}
@@ -237,7 +234,7 @@ const Register: React.FC = () => {
               </select>
             </div>
 
-            {companyTypeIds.includes(formData.UserType) && (
+            {formData.UserType && companyTypeIds.includes(formData.UserType) && (
               <>
                 <Input
                   label="Company Name"

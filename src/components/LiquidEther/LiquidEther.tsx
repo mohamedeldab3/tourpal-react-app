@@ -974,5 +974,12 @@ autoRampDuration = 0.3
         autoRampDuration
     ]);
 
-    return <div ref={mountRef} className={`liquid-ether-container ${className || ''}`} style={style} />;
+    // If style is not empty, add a custom class for dynamic styles
+    const hasCustomStyle = style && Object.keys(style).length > 0;
+    return (
+        <div
+            ref={mountRef}
+            className={`liquid-ether-container ${className || ''}${hasCustomStyle ? ' liquid-ether-custom-style' : ''}`}
+        />
+    );
 }

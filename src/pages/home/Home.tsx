@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import { getBanners, BannerDto } from '../../api/bannerService'; // استيراد خدمة اللافتات
 import { getTourGuidesList, TourGuide } from '../../api/tourGuideService'; // استيراد خدمة المرشدين السياحيين
+import './Home.css';
 
 const Home: React.FC = () => {
     // Mock data for featured items
     const featuredVehicles = [
-        { id: 1, name: 'Luxury Sedan', description: 'Perfect for city tours and business travel.', price: 80, imageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
-        { id: 2, name: 'H1 Mini Bus', description: 'Ideal for group travel and family vacations.', price: 150, imageUrl: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
-        { id: 3, name: '4x4 SUV', description: 'Explore deserts and mountains with a powerful vehicle.', price: 120, imageUrl: 'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60' },
+        { id: 1, name: 'Luxury Sedan', description: 'Perfect for city tours and business travel.', price: 80, imageUrl: 'https://images.unsplash.com/photo-1568605117036-5fe5e7185743?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+        { id: 2, name: 'H1 Mini Bus', description: 'Ideal for group travel and family vacations.', price: 150, imageUrl: 'https://images.unsplash.com/photo-1614203201382-d5cd798c7e70?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
+        { id: 3, name: '4x4 SUV', description: 'Explore deserts and mountains with a powerful vehicle.', price: 120, imageUrl: 'https://images.unsplash.com/photo-1599423300746-25f533735683?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
     ];
 
     // حالة اللافتات
@@ -40,10 +41,8 @@ const Home: React.FC = () => {
 
     return (
         <div>
-            {/* Hero Section */}
             <section
-                className="relative h-[600px] bg-cover bg-center text-white flex items-center justify-center"
-                style={{ backgroundImage: "linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1517760444937-f6397edcbbcd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80')" }}>
+                className="relative h-[600px] bg-cover bg-center text-white flex items-center justify-center home-hero-section">
                 <div className="text-center z-10 p-4">
                     <h1 className="text-5xl md:text-6xl font-black mb-4">Your Journey Starts Here</h1>
                     <p className="text-lg md:text-xl max-w-2xl mx-auto mb-8">
@@ -55,17 +54,26 @@ const Home: React.FC = () => {
                 </div>
             </section>
 
-            {/* Banners Section - قسم الإعلانات (يعرض أول لافتة متاحة) */}
+            {/* Banners Section */}
             {banners.length > 0 && (
-                <section className="py-12 bg-gray-50">
-                    <div className="container mx-auto px-6">
-                        <a href={banners[0].linkUrl || '#'} target="_blank" rel="noopener noreferrer">
-                            <img
-                                src={banners[0].imageUrl}
-                                alt={banners[0].title || 'Banner'}
-                                className="w-full h-auto rounded-lg shadow-lg object-cover"
-                            />
-                        </a>
+                <section className="py-8 bg-gray-100">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                            <a href={banners[0].linkUrl || '#'} target="_blank" rel="noopener noreferrer" className="block md:flex">
+                                <div className="md:w-1/2">
+                                    <img
+                                        src={banners[0].imageUrl}
+                                        alt={banners[0].title || 'Special Offer'}
+                                        className="w-full h-64 md:h-full object-cover"
+                                    />
+                                </div>
+                                <div className="p-6 md:w-1/2 flex flex-col justify-center">
+                                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{banners[0].title || 'Exclusive Deal'}</h2>
+                                    <p className="text-gray-600 mb-4">{banners[0].title || 'Check out our latest offers and book your next adventure!'}</p>
+                                    <div className="text-sm font-semibold text-gray-500 uppercase">Advertisement</div>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </section>
             )}
@@ -101,7 +109,7 @@ const Home: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {tourGuides.slice(0, 3).map((guide) => (
                             <div key={guide.id} className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300">
-                                <img src={guide.profilePictureUrl || 'https://via.placeholder.com/150'} alt={guide.fullName} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                                <img src={guide.profilePictureUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'} alt={guide.fullName} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold">{guide.fullName}</h3>
                                     <p className="text-gray-600 mt-2">
