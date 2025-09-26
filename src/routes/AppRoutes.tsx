@@ -1,26 +1,29 @@
-import React from 'react';
+import React, { lazy } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import Loadable from '../components/Loadable';
 import MainLayout from '../layouts/MainLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
-import Home from '../pages/home/Home';
-import Search from '../pages/search/Search';
-import Login from '../pages/auth/Login';
-import Register from '../pages/auth/Register';
-import RegisterStep2 from '../pages/auth/RegisterStep2';
-import ForgotPassword from '../pages/auth/ForgotPassword';
-import ResetPassword from '../pages/auth/ResetPassword';
-import ConfirmEmail from '../pages/auth/ConfirmEmail';
-import PleaseConfirm from '../pages/auth/PleaseConfirm';
-import CarDetail from '../pages/car/CarDetail';
-import UserDashboard from '../pages/dashboard/UserDashboard';
-import ProviderDashboard from '../pages/dashboard/ProviderDashboard';
-import AdminDashboard from '../pages/dashboard/AdminDashboard';
-import ClientDashboard from '../pages/dashboard/ClientDashboard'; // Import ClientDashboard
 import ProtectedRoute from './ProtectedRoute';
-import Profile from '../pages/dashboard/Profile';
-import TourGuideSearch from '../pages/tour-guide/TourGuideSearch';
-import TourGuideDetail from '../pages/tour-guide/TourGuideDetail';
-import CreateAdvertisement from '../pages/dashboard/CreateAdvertisement';
+
+// Lazy load components
+const Home = Loadable(lazy(() => import('../pages/home/Home')));
+const Search = Loadable(lazy(() => import('../pages/search/Search')));
+const Login = Loadable(lazy(() => import('../pages/auth/Login')));
+const Register = Loadable(lazy(() => import('../pages/auth/Register')));
+const RegisterStep2 = Loadable(lazy(() => import('../pages/auth/RegisterStep2')));
+const ForgotPassword = Loadable(lazy(() => import('../pages/auth/ForgotPassword')));
+const ResetPassword = Loadable(lazy(() => import('../pages/auth/ResetPassword')));
+const ConfirmEmail = Loadable(lazy(() => import('../pages/auth/ConfirmEmail')));
+const PleaseConfirm = Loadable(lazy(() => import('../pages/auth/PleaseConfirm')));
+const CarDetail = Loadable(lazy(() => import('../pages/car/CarDetail')));
+const UserDashboard = Loadable(lazy(() => import('../pages/dashboard/UserDashboard')));
+const ProviderDashboard = Loadable(lazy(() => import('../pages/dashboard/ProviderDashboard')));
+const AdminDashboard = Loadable(lazy(() => import('../pages/dashboard/AdminDashboard')));
+const ClientDashboard = Loadable(lazy(() => import('../pages/dashboard/ClientDashboard')));
+const Profile = Loadable(lazy(() => import('../pages/dashboard/Profile')));
+const TourGuideSearch = Loadable(lazy(() => import('../pages/tour-guide/TourGuideSearch')));
+const TourGuideDetail = Loadable(lazy(() => import('../pages/tour-guide/TourGuideDetail')));
+const CreateAdvertisement = Loadable(lazy(() => import('../pages/dashboard/CreateAdvertisement')));
 
 const AppRoutes: React.FC = () => {
   return (
