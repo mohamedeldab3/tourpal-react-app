@@ -32,6 +32,9 @@ const Register: React.FC = () => {
   const [cities, setCities] = useState<City[]>([]);
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [passwordMatchError, setPasswordMatchError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [clientUserTypeId, setClientUserTypeId] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
 
@@ -63,6 +66,11 @@ const Register: React.FC = () => {
   ) => {
     const { name, value } = e.target;
 
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "UserType" || name === "CityId" ? (value ? parseInt(value, 10) : undefined) : value,
+    }));
+
     if (name === "Password") {
       const passwordRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]*$/;
       if (!passwordRegex.test(value)) {
@@ -70,38 +78,55 @@ const Register: React.FC = () => {
       } else {
         setPasswordError(null);
       }
+      if (confirmPassword && value !== confirmPassword) {
+        setPasswordMatchError("Passwords do not match.");
+      } else {
+        setPasswordMatchError(null);
+      }
+    } else if (name === "confirmPassword") {
+      setConfirmPassword(value);
+      if (formData.Password && value !== formData.Password) {
+        setPasswordMatchError("Passwords do not match.");
+      } else {
+        setPasswordMatchError(null);
+      }
     }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "UserType" || name === "CityId" ? (value ? parseInt(value, 10) : undefined) : value,
-    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (passwordError) {
+    if (passwordError || passwordMatchError) {
+      return;
+    }
+
+    if (formData.Password !== confirmPassword) {
+      setPasswordMatchError("Passwords do not match.");
       return;
     }
     
+    setLoading(true);
+
     if (formData.UserType === clientUserTypeId) {
       try {
         await register(formData);
-        toast.success("Registration successful! Please check your email to confirm your account."); // Use toast.success
+        toast.success("Registration successful! Please check your email to confirm your account.");
         navigate('/please-confirm');
       } catch (error) {
         console.error("Client registration failed:", error);
-        toast.error("Registration failed. Please try again."); // Use toast.error
+        toast.error("Registration failed. Please try again.");
+      } finally {
+        setLoading(false);
       }
     } else {
       // Navigate to step 2 with the form data
       navigate('/register-step2', { state: { formData } });
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> {/* Added relative and overflow-hidden */} 
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden"> 
       <div className="absolute inset-0 z-0">
         <LiquidEther
           colors={['#5227FF', '#FF9FFC', '#B19EEF']}
@@ -121,7 +146,7 @@ const Register: React.FC = () => {
           autoRampDuration={0.3}
         />
       </div>
-      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> {/* Added z-10 */} 
+      <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg flex z-10"> 
         <div
           className={`hidden md:block w-1/2 bg-cover bg-center rounded-l-xl ${styles.registerBg}`}
         ></div>
@@ -181,6 +206,17 @@ const Register: React.FC = () => {
               required
             />
             {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
+
+            <Input
+              label="Confirm Password"
+              id="confirm-password"
+              name="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={handleInputChange}
+              required
+            />
+            {passwordMatchError && <p className="text-red-500 text-sm mt-1">{passwordMatchError}</p>}
 
             <div>
               <label
@@ -257,8 +293,8 @@ const Register: React.FC = () => {
             )}
             
             <div>
-              <Button type="submit" className="w-full" disabled={!!passwordError}>
-                {formData.UserType === clientUserTypeId ? "Sign Up" : "Next: Upload Documents"}
+              <Button type="submit" className="w-full" disabled={!!passwordError || !!passwordMatchError || loading}>
+                {loading ? "Signing Up..." : (formData.UserType === clientUserTypeId ? "Sign Up" : "Next: Upload Documents")}
               </Button>
             </div>
           </form>

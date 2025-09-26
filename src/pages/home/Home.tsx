@@ -79,20 +79,21 @@ const Home: React.FC = () => {
             )}
 
             {/* Featured Vehicles Section */}
-            <section className="py-16 bg-white">
-                <div className="container mx-auto px-6">
-                    <h2 className="text-3xl font-bold text-center mb-12">Featured Vehicles</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {featuredVehicles.map((vehicle) => (
-                            <div key={vehicle.id} className="bg-white rounded-lg shadow-md overflow-hidden group transform hover:-translate-y-2 transition-transform duration-300">
-                                <img src={vehicle.imageUrl} alt={vehicle.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                        {/* Featured Vehicles Section */}
+            <section className="py-12 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <h2 className="text-3xl font-bold text-center mb-8">Featured Vehicles</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {featuredVehicles.map(vehicle => (
+                            <div key={vehicle.id} className="bg-white rounded-lg shadow-lg overflow-hidden">
+                                <img src={vehicle.imageUrl} alt={vehicle.name} className="w-full h-48 object-cover" />
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold">{vehicle.name}</h3>
-                                    <p className="text-gray-600 mt-2">{vehicle.description}</p>
-                                    <div className="mt-4 flex justify-between items-center">
-                                        <span className="text-lg font-bold text-purple-600">${vehicle.price}/day</span>
-                                        <Link to={`/car/${vehicle.id}`} className="font-semibold text-purple-600 hover:text-purple-800">
-                                            View Details
+                                    <h3 className="text-xl font-semibold mb-2">{vehicle.name}</h3>
+                                    <p className="text-gray-600 mb-4">{vehicle.description}</p>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-2xl font-bold text-purple-600">${vehicle.price}/day</span>
+                                        <Link to={`/car/${vehicle.id}`}>
+                                            <Button>View Details</Button>
                                         </Link>
                                     </div>
                                 </div>
